@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="src/css/view.css"/>
+</head>
+<body>
+<form action="#">
+    <input type="file" onchange="OE.fileAPI.loadHIN(this.files[0]);"/>
+</form>
+
+<p class="acknowledgements">Powered by <a href="http://threejs.org/" rel="nofollow">three.js</a></p>
+<div id="oe-view"></div>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/three.js/r68/three.min.js"></script>
+<script>
+    if (typeof THREE === "undefined") {
+        document.write("<script src='vendor/three.min.js'><\/script>");
+    }
+</script>
+<script src="main.js"></script></body>
+</html>

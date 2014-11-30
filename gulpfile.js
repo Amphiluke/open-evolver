@@ -24,6 +24,7 @@ gulp.task("getScriptList", function (cb) {
 gulp.task("html", function () {
     return gulp.src("./index.html")
         .pipe(replace(/(?:<script src=".+\?concat=1"><\/script>\s*)+/g, "<script src=\"main.js\"></script>"))
+        .pipe(replace("src/css/main.css", "main.css"))
         .pipe(gulp.dest("build"));
 });
 
@@ -34,4 +35,8 @@ gulp.task("scripts", ["getScriptList"], function () {
         .pipe(gulp.dest("build"));
 });
 
-gulp.task("default", ["html", "scripts"]);
+gulp.task("styles", function () {
+    fs.createReadStream("./src/css/main.css").pipe(fs.createWriteStream("./build/main.css"));
+});
+
+gulp.task("default", ["html", "scripts", "styles"]);

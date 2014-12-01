@@ -1,12 +1,14 @@
+@import (reference) "ui";
+
 a {
     color:#0c0;
     &:hover {
         text-decoration:none;
     }
 }
-.acknowledgements {
+.oe-acknowledgements {
     color:#dadada;
-    font:12px Arial,sans-serif;
+    font:unit((12px / @root-font-size), em) @base-font-family;
     margin:3px 0 0 3px;
     position:absolute;
     z-index:1;

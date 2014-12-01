@@ -48,11 +48,14 @@ formats.hin = {
     }
 };
 
-fileAPI.loadHIN = function (fileObj) {
+fileAPI.loadHIN = function (fileObj, cb) {
     var reader = new FileReader();
     reader.addEventListener("load", function () {
         OE.structure = formats.hin.parse(reader.result);
         OE.view.render();
+        if (typeof cb === "function") {
+            cb();
+        }
     }, false);
     reader.readAsText(fileObj);
 };

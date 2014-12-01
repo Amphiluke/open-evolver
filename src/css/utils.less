@@ -1,0 +1,22 @@
+.vendor-prefix(@property; @value) {
+    -webkit-@{property}:@value;
+    -moz-@{property}:@value;
+    -o-@{property}:@value;
+    @{property}:@value;
+    }
+
+//@vendor-prefixes: -webkit-, -moz-, -ms-, -o-, "";
+//.vendor-prefix2(@property; @value) {
+//    .prefix-loop(@prefix-counter) when (@prefix-counter <= length(@vendor-prefixes)) {
+//        @prefix: extract(@vendor-prefixes, @prefix-counter);
+//        @prop: replace(@property, "\-\*\-", @prefix, "g");
+//        @val: replace(@value, "\-\*\-", @prefix, "g");
+//        @{prop}:@val;
+//        .prefix-loop(@prefix-counter + 1);
+//        }
+//    .prefix-loop(1);
+//    }
+
+.box-sizing(...) {
+    .vendor-prefix(box-sizing; @arguments);
+    }

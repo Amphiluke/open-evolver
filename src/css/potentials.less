@@ -1,0 +1,48 @@
+@import (reference) "utils";
+
+.oe-potentials {
+    border:1px solid #dadada;
+    border-collapse:collapse;
+    display:table;
+    list-style:none;
+    margin:0;
+    max-height:300px;
+    max-width:500px;
+    overflow:auto;
+    padding:0;
+    table-layout:fixed;
+    width:100%;
+    li {
+        display:table-row;
+        margin:0;
+        padding:0;
+        > span {
+            border:1px solid #dadada;
+            .box-sizing(border-box);
+            display:table-cell;
+            padding:2px 5px;
+            vertical-align:middle;
+            width:28%;
+            &:first-child {
+                background:#f0f0f0;
+                width:16%;
+            }
+        }
+        &:first-child > span {
+            background:#f0f0f0;
+        }
+    }
+    input {
+        background:none;
+        border:none;
+        display:block;
+        font-size:1em;
+        height:1.5em;
+        margin:0;
+        padding:0;
+        width:100%;
+    }
+    sub {
+        font-style:normal;
+    }
+}

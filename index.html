@@ -41,11 +41,11 @@
                 <span><var>&omega;<sub>0</sub></var>, cm<sup>&minus;1</sup></span>
             </li>
             <% _.each(pairs, function (pair) { %>
-                <li class="oe-potential-row">
+                <li class="oe-potential-row" data-pair="<%- pair %>">
                     <span><label for="oe-<%- pair %>"><%- pair %></label></span>
-                    <span><input type="text" id="oe-<%- pair %>" class="oe-depth" pattern="\d*\.?\d+([eE][+-]?\d+)?"/></span>
-                    <span><input type="text" class="oe-dist" pattern="\d*\.?\d+([eE][+-]?\d+)?"/></span>
-                    <span><input type="text" class="oe-freq" pattern="\d*\.?\d+([eE][+-]?\d+)?"/></span>
+                    <span><input type="text" id="oe-<%- pair %>" data-param="D0" pattern="\d*\.?\d+([eE][+-]?\d+)?"/></span>
+                    <span><input type="text" data-param="R0" pattern="\d*\.?\d+([eE][+-]?\d+)?"/></span>
+                    <span><input type="text" data-param="w0" pattern="\d*\.?\d+([eE][+-]?\d+)?"/></span>
                 </li>
             <% }); %>
         </script>

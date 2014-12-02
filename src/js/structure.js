@@ -7,5 +7,6 @@ var OE = global.OE || (global.OE = {}),
 
 structure.atoms = [];
 structure.bonds = [];
+structure.potentials = {};
 
 })(this);

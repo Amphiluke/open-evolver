@@ -76,7 +76,13 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
 
     tpl: _.template($("#oe-potentials-tpl").html()),
 
-    //events: [],
+    handleApply: function () {
+        if (this.$el[0].checkValidity()) {
+            return Object.getPrototypeOf(this).handleApply.apply(this, arguments);
+        } else {
+            window.alert("Please, fix invalid input first");
+        }
+    },
 
     setup: function () {
         var atoms = OE.structure.atoms,
@@ -93,7 +99,35 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
                 pairs.push(atomList[i] + atomList[j]);
             }
         }
+        // Add extra-graph pairs
+        pairs = pairs.concat(pairs.map(function (pair) {
+            return "x-" + pair;
+        }));
         $("ul.oe-potentials").html(ui.potentials.tpl({pairs: pairs}));
+    },
+
+    apply: function () {
+        var potentials = OE.structure.potentials = {};
+        this.$el.find("li[data-pair]").each(function () {
+            var row = $(this),
+                params = {};
+            row.find("input[data-param]").each(function () {
+                if (this.value) {
+                    params[$(this).data("param")] = +this.value;
+                    // Setting the defaultValue allows using form.reset() on possible future discards
+                    this.defaultValue = this.value;
+                } else {
+                    return (params = false);
+                }
+            });
+            if (params) {
+                potentials[row.data("pair")] = params;
+            }
+        });
+    },
+
+    discard: function () {
+        this.$el[0].reset();
     }
 })).init();
 

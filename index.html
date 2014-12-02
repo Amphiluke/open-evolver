@@ -11,26 +11,27 @@
     <li>
         <button type="menu" value="File" menu="file-menu"></button>
         <menu id="file-menu" type="popup">
-            <menuitem label="Load structure…"></menuitem>
-            <menuitem label="Save structure…"></menuitem>
+            <menuitem label="Load structure…" data-action="load"></menuitem>
+            <menuitem label="Save structure…" data-action="save"></menuitem>
         </menu>
-        <input type="file" id="oe-file"/>
+        <input type="file" id="oe-file" autocomplete="off"/>
     </li>
     <li>
         <button type="menu" value="Edit" menu="edit-menu"></button>
         <menu id="edit-menu" type="popup">
-            <menuitem label="Set parameters…"></menuitem>
+            <menuitem label="Set parameters…" data-action="setup"></menuitem>
         </menu>
     </li>
     <li>
         <button type="menu" value="View" menu="view-menu"></button>
         <menu id="view-menu" type="popup">
-            <menuitem label="Appearance…"></menuitem>
+            <menuitem label="Appearance…" data-action="alter"></menuitem>
         </menu>
     </li>
 </menu>
 
-<form action="#">
+<form action="#" class="oe-potential-form hidden">
+    <h2>Potential parameters</h2>
     <ul class="oe-potentials">
         <script type="text/template" id="oe-potentials-tpl">
             <li>
@@ -49,6 +50,10 @@
             <% }); %>
         </script>
     </ul>
+    <p class="oe-potential-btns">
+        <input type="button" class="oe-apply-potentials" value="OK"/>
+        <input type="button" class="oe-discard-potentials" value="Cancel"/>
+    </p>
 </form>
 
 <p class="oe-acknowledgements">Powered by <a href="http://threejs.org/" rel="nofollow">three.js</a></p>

@@ -6,18 +6,62 @@
     <link rel="stylesheet" href="main.css"/>
 </head>
 <body>
-<form action="#">
-    <input type="file" onchange="OE.fileAPI.loadHIN(this.files[0]);"/>
+
+<menu type="toolbar" class="oe-menu">
+    <li>
+        <button type="menu" value="File" menu="file-menu"></button>
+        <menu id="file-menu" type="popup">
+            <menuitem label="Load structure…" data-action="load"></menuitem>
+            <menuitem label="Save structure…" data-action="save"></menuitem>
+        </menu>
+        <input type="file" id="oe-file" autocomplete="off"/>
+    </li>
+    <li>
+        <button type="menu" value="Edit" menu="edit-menu"></button>
+        <menu id="edit-menu" type="popup">
+            <menuitem label="Set parameters…" data-action="setup"></menuitem>
+        </menu>
+    </li>
+    <li>
+        <button type="menu" value="View" menu="view-menu"></button>
+        <menu id="view-menu" type="popup">
+            <menuitem label="Appearance…" data-action="alter"></menuitem>
+        </menu>
+    </li>
+</menu>
+
+<form action="#" class="oe-potential-form hidden">
+    <h2>Potential parameters</h2>
+    <ul class="oe-potentials">
+        <script type="text/template" id="oe-potentials-tpl">
+            <li>
+                <span>Pair</span>
+                <span><var>D<sub>0</sub></var>, eV</span>
+                <span><var>R<sub>0</sub></var>, nm</span>
+                <span><var>&omega;<sub>0</sub></var>, cm<sup>&minus;1</sup></span>
+            </li>
+            <% _.each(pairs, function (pair) { %>
+                <li class="oe-potential-row">
+                    <span><label for="oe-<%- pair %>"><%- pair %></label></span>
+                    <span><input type="text" id="oe-<%- pair %>" class="oe-depth" pattern="\d*\.?\d+([eE][+-]?\d+)?"/></span>
+                    <span><input type="text" class="oe-dist" pattern="\d*\.?\d+([eE][+-]?\d+)?"/></span>
+                    <span><input type="text" class="oe-freq" pattern="\d*\.?\d+([eE][+-]?\d+)?"/></span>
+                </li>
+            <% }); %>
+        </script>
+    </ul>
+    <p class="oe-potential-btns">
+        <input type="button" class="oe-apply-potentials" value="OK"/>
+        <input type="button" class="oe-discard-potentials" value="Cancel"/>
+    </p>
 </form>
 
-<p class="acknowledgements">Powered by <a href="http://threejs.org/" rel="nofollow">three.js</a></p>
+<p class="oe-acknowledgements">Powered by <a href="http://threejs.org/" rel="nofollow">three.js</a></p>
 <div id="oe-view"></div>
 
-<script src="//cdnjs.cloudflare.com/ajax/libs/three.js/r68/three.min.js"></script>
-<script>
-    if (typeof THREE === "undefined") {
-        document.write("<script src='vendor/three.min.js'><\/script>");
-    }
-</script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/three.js/r69/three.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>
+<script src="src/js/fallback.js"></script>
 <script src="main.js"></script></body>
 </html>

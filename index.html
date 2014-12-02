@@ -30,7 +30,7 @@
     </li>
 </menu>
 
-<form action="#" class="oe-potential-form hidden">
+<form action="#" class="oe-dialog oe-potential-form hidden" autocomplete="off">
     <h2>Potential parameters</h2>
     <ul class="oe-potentials">
         <script type="text/template" id="oe-potentials-tpl">
@@ -50,9 +50,21 @@
             <% }); %>
         </script>
     </ul>
-    <p class="oe-potential-btns">
-        <input type="button" class="oe-apply-potentials" value="OK"/>
-        <input type="button" class="oe-discard-potentials" value="Cancel"/>
+    <p class="oe-dialog-btns">
+        <input type="button" class="oe-apply" value="OK"/>
+        <input type="button" class="oe-discard" value="Cancel"/>
+    </p>
+</form>
+
+<form action="#" class="oe-dialog oe-appearance-form hidden" autocomplete="off">
+    <h2>Appearance</h2>
+    <p>
+        <label><input type="radio" name="appearance" data-appearance="graph" checked/> Graph</label><br/>
+        <label><input type="radio" name="appearance" data-appearance="spheres"/> Spheres</label>
+    </p>
+    <p class="oe-dialog-btns">
+        <input type="button" class="oe-apply" value="OK"/>
+        <input type="button" class="oe-discard" value="Cancel"/>
     </p>
 </form>
 

@@ -1,27 +1,4 @@
-@import (reference) "utils";
-
-.oe-potential-form {
-    background:#fff;
-    border:1px solid #000;
-    border-radius:5px;
-    left:50%;
-    margin-left:-265px;
-    padding:0 15px;
-    position:absolute;
-    top:50px;
-    width:530px;
-    z-index:20;
-    &:before {
-        background:fade(#fff, 80%);
-        content:"";
-        height:100%;
-        left:0;
-        position:fixed;
-        top:0;
-        width:100%;
-        z-index:-1;
-    }
-}
+@import (reference) "../utils";
 
 .oe-potentials {
     border:1px solid #dadada;
@@ -66,12 +43,5 @@
     }
     sub {
         font-style:normal;
-    }
-}
-
-.oe-potential-btns {
-    text-align:right;
-    input {
-        min-width:85px;
     }
 }

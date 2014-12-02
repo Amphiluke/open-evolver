@@ -13,6 +13,7 @@ ui.$ = function (target) {
     return (target && target.jquery) ? target : $(target);
 };
 
+
 ui.proto = {
     init: function () {
         var events = this.events || (this.events = {});
@@ -24,25 +25,41 @@ ui.proto = {
     }
 };
 
-ui.potentials = (_.extend(Object.create(ui.proto), {
-    $el: $(".oe-potential-form"),
 
-    tpl: _.template($("#oe-potentials-tpl").html()),
+ui.abstractDialog = _.extend(Object.create(ui.proto), {
+    init: function () {
+        if (this.hasOwnProperty("events")) {
+            this.events = this.events.concat(ui.abstractDialog.events);
+        }
+        return ui.proto.init.apply(this, arguments);
+    },
 
     events: [
-        {type: "click", owner: ".oe-discard-potentials", handler: "handleDiscard"},
+        {type: "click", owner: ".oe-apply", handler: "handleApply"},
+        {type: "click", owner: ".oe-discard", handler: "handleDiscard"},
         {type: "keyup", owner: $doc, handler: "handleGlobalKeyUp"}
     ],
 
+    handleApply: function () {
+        this.apply();
+        this.hide();
+    },
+
     handleDiscard: function () {
+        this.discard();
         this.hide();
     },
 
     handleGlobalKeyUp: function (e) {
         if (e.which === 27) {
+            this.discard();
             this.hide();
         }
     },
+
+    apply: $.noop,
+
+    discard: $.noop,
 
     show: function () {
         this.$el.removeClass("hidden");
@@ -50,7 +67,16 @@ ui.potentials = (_.extend(Object.create(ui.proto), {
 
     hide: function () {
         this.$el.addClass("hidden");
-    },
+    }
+});
+
+
+ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
+    $el: $(".oe-potential-form"),
+
+    tpl: _.template($("#oe-potentials-tpl").html()),
+
+    //events: [],
 
     setup: function () {
         var atoms = OE.structure.atoms,
@@ -68,6 +94,23 @@ ui.potentials = (_.extend(Object.create(ui.proto), {
             }
         }
         $("ul.oe-potentials").html(ui.potentials.tpl({pairs: pairs}));
+    }
+})).init();
+
+
+ui.appearance = (_.extend(Object.create(ui.abstractDialog), {
+    $el: $(".oe-appearance-form"),
+
+    apply: function () {
+        var appearance = this.$el.find("input[name='appearance']").filter(":checked").data("appearance");
+        if (appearance !== OE.view.appearance) {
+            OE.view.appearance = appearance;
+            OE.view.render();
+        }
+    },
+
+    discard: function () {
+        this.$el.find("input[data-appearance='" + OE.view.appearance + "']").prop("checked", true);
     }
 })).init();
 
@@ -114,7 +157,7 @@ ui.menu = (_.extend(Object.create(ui.proto), {
     },
 
     alterAction: function () {
-        // TODO: implement action
+        ui.appearance.show();
     }
 })).init();
 

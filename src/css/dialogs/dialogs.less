@@ -1,0 +1,30 @@
+@import (reference) "../ui";
+
+.oe-dialog {
+    background:#fff;
+    border:1px solid darken(@border-light-color, 80%);
+    border-radius:5px;
+    left:50%;
+    margin-left:-500px / 2;
+    padding:0 15px;
+    position:absolute;
+    top:50px;
+    width:500px;
+    z-index:20;
+    &:before {
+        background:fade(#fff, 80%);
+        content:"";
+        height:100%;
+        left:0;
+        position:fixed;
+        top:0;
+        width:100%;
+        z-index:-1;
+    }
+    &-btns {
+        text-align:right;
+        input {
+            min-width:85px;
+        }
+    }
+}

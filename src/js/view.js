@@ -126,6 +126,8 @@ view.clearScene = function () {
     }
 };
 
+view.appearance = "graph";
+
 view.resetScene = function () {
     view.clearScene();
     if (view.appearance === "spheres") {

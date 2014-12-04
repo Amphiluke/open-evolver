@@ -5,6 +5,12 @@
 body {
     font:normal percentage(unit((@root-font-size / 16))) ~"/" unit((@root-line-height / @root-font-size)) @base-font-family;
 }
+a {
+    color:@base-link-color;
+    &:hover {
+        text-decoration:none;
+    }
+}
 
 .hidden {
     display:none;

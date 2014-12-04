@@ -1,4 +1,5 @@
 @import (reference) "../utils";
+@import (reference) "../ui";
 
 .oe-potentials {
     border:1px solid #dadada;
@@ -43,5 +44,27 @@
     }
     sub {
         font-style:normal;
+    }
+}
+
+.potential-filing {
+    label {
+        color:@base-link-color;
+        cursor:pointer;
+        overflow:hidden;
+        position:relative;
+        text-decoration:underline;
+        &:hover {
+            text-decoration:none;
+        }
+        input {
+            cursor:pointer;
+            height:100%;
+            left:0;
+            opacity:0.01;
+            position:absolute;
+            top:0;
+            width:100%;
+        }
     }
 }

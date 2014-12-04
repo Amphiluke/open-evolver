@@ -76,6 +76,36 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
 
     tpl: _.template($("#oe-potentials-tpl").html()),
 
+    events: [
+        {type: "change", owner: ".load-potentials", handler: "handleLoad"},
+        {type: "mousedown", owner: ".save-potentials", handler: "handleSave"}
+    ],
+
+    handleLoad: function (e) {
+        var reader = new FileReader();
+        reader.addEventListener("load", function () {
+            var rows = reader.result.split(/\r?\n/);
+            _.each(rows, function (row) {
+                var params = row.split("\t");
+                ui.potentials.$el.find("li[data-pair='" + params[0] + "'] input").val(function (index) {
+                    return params[index + 1] || "";
+                });
+            });
+        }, false);
+        reader.readAsText(e.target.files[0]);
+    },
+
+    handleSave: function (e) {
+        var text = this.$el.find("li[data-pair]")
+            .map(function () {
+                var row = $(this);
+                return row.data("pair") + "\t" + row.find("input").map(function () {
+                    return this.value;
+                }).get().join("\t");
+            }).get().join("\r\n");
+        e.target.href = "data:text/plain;base64," + btoa(text);
+    },
+
     handleApply: function () {
         if (this.$el[0].checkValidity()) {
             return Object.getPrototypeOf(this).handleApply.apply(this, arguments);

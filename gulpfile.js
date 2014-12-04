@@ -23,8 +23,7 @@ gulp.task("getScriptList", function (cb) {
 
 gulp.task("html", function () {
     return gulp.src("./index.html")
-        .pipe(replace(/(?:<script src=".+\?concat=1"><\/script>\s*)+/g, "<script src=\"main.js\"></script>"))
-        .pipe(replace("src/css/main.css", "main.css"))
+        .pipe(replace(/(?:<script src=".+\?concat=1"><\/script>\s*)+/g, "<script src=\"src/js/main.js\"></script>"))
         .pipe(gulp.dest("build"));
 });
 
@@ -32,11 +31,18 @@ gulp.task("scripts", ["getScriptList"], function () {
     return gulp.src(scriptList)
         .pipe(uglify())
         .pipe(concat("main.js", {newLine: "\r\n"}))
-        .pipe(gulp.dest("build"));
+        .pipe(gulp.dest("build/src/js"));
+});
+
+gulp.task("detachedScripts", function () {
+    return gulp.src(["./src/js/fallback.js", "./src/js/calc.js"])
+        .pipe(uglify())
+        .pipe(gulp.dest("build/src/js"));
 });
 
 gulp.task("styles", function () {
-    fs.createReadStream("./src/css/main.css").pipe(fs.createWriteStream("./build/main.css"));
+    return gulp.src("./src/css/main.css")
+        .pipe(gulp.dest("build/src/css"));
 });
 
-gulp.task("default", ["html", "scripts", "styles"]);
+gulp.task("default", ["html", "scripts", "detachedScripts", "styles"]);

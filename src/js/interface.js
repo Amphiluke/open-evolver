@@ -107,7 +107,7 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
     },
 
     apply: function () {
-        var potentials = OE.structure.potentials = {};
+        var potentials = {};
         this.$el.find("li[data-pair]").each(function () {
             var row = $(this),
                 params = {};
@@ -124,6 +124,7 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
                 potentials[row.data("pair")] = params;
             }
         });
+        OE.structureUtils.setPotentials(potentials);
     },
 
     discard: function () {
@@ -147,6 +148,24 @@ ui.appearance = (_.extend(Object.create(ui.abstractDialog), {
         this.$el.find("input[data-appearance='" + OE.view.appearance + "']").prop("checked", true);
     }
 })).init();
+
+
+ui.info = (_.extend(Object.create(ui.abstractDialog), {
+    $el: $(".oe-info-dialog"),
+
+    setup: function () {
+        var tpls = this.tpls = {};
+        this.$el.find("script[type='text/template'][data-info]").each(function () {
+            var tpl = $(this);
+            tpls[tpl.data("info")] = _.template(tpl.html());
+        });
+        return this.init();
+    },
+
+    applyTpl: function (tpl, data) {
+        this.$el.find(".oe-info-dialog-text").html(this.tpls[tpl](data));
+    }
+})).setup();
 
 
 ui.menu = (_.extend(Object.create(ui.proto), {
@@ -190,9 +209,22 @@ ui.menu = (_.extend(Object.create(ui.proto), {
         ui.potentials.show();
     },
 
+    calcEnergyAction: function () {
+        OE.worker.invoke("totalEnergy");
+    },
+
     alterAction: function () {
         ui.appearance.show();
     }
 })).init();
+
+
+OE.worker.on("totalEnergy", function (data) {
+    ui.info.applyTpl("energy", {
+        energy: data,
+        bonds: OE.structure.bonds.length
+    });
+    ui.info.show();
+});
 
 })(this);

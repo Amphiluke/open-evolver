@@ -1,0 +1,1 @@
+!function(r){"use strict";var e,n={jQuery:"vendor/jquery.min.js",THREE:"vendor/three.min.js",_:"vendor/underscore-min.js"};for(e in n)n.hasOwnProperty(e)&&!r.hasOwnProperty(e)&&r.document.write("<script src='"+n[e]+"'></script>")}(this);

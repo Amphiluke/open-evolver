@@ -203,6 +203,7 @@ ui.menu = (_.extend(Object.create(ui.proto), {
 
     events: [
         {type: "click.oe", owner: $doc, handler: "handleGlobalClick"},
+        {type: "mouseenter", owner: ".oe-menu", filter: "button[menu]", handler: "handleHover"},
         {type: "click", owner: ".oe-menu", filter: "menuitem[data-action]", handler: "handleAction"},
         {type: "change", owner: "#oe-file", handler: "handleFile"}
     ],
@@ -214,6 +215,18 @@ ui.menu = (_.extend(Object.create(ui.proto), {
             popups = popups.not($("#" + target.attr("menu")).toggleClass("expanded"));
         }
         popups.removeClass("expanded");
+    },
+
+    handleHover: function (e) {
+        var expandedMenu = this.$el.find("menu.expanded"),
+            targetMenu;
+        if (expandedMenu.length) {
+            targetMenu = $(e.target).siblings("menu");
+            if (!expandedMenu.is(targetMenu)) {
+                expandedMenu.removeClass("expanded");
+                targetMenu.addClass("expanded");
+            }
+        }
     },
 
     handleAction: function (e) {

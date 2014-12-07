@@ -131,7 +131,9 @@ ui.graph = (_.extend(Object.create(ui.abstractDialog), {
 
     resetHTML: function () {
         this.$el.find(".oe-cutoffs")
-            .html(this.tpl({pairs: OE.structureUtils.pairList}))
+            .html(this.tpl({
+                pairs: OE.structureUtils.pairList.slice(0, OE.structureUtils.pairList.length / 2)
+            }))
             .find(".oe-cutoff").eq(0).addClass("active");
     },
 

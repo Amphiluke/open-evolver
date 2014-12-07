@@ -4,7 +4,7 @@
 
 var _ = global._,
     OE = global.OE,
-    structureUtils = OE.structureUtils = {};
+    structureUtils = OE.structureUtils = Object.create(OE.observer);
 
 
 OE.structure = {
@@ -14,8 +14,55 @@ OE.structure = {
 };
 
 
-structureUtils.syncWorker = function () {
-    OE.worker.invoke("setStructure", OE.structure);
+/**
+ * A list of all atoms present in the current structure
+ * @type {Array}
+ */
+structureUtils.atomList = [];
+
+/**
+ * A list of all possible (chemically bound or not) atomic pairs for the current structure
+ * @type {Array}
+ */
+structureUtils.pairList = [];
+
+/**
+ * Completely overwrites the `OE.structure` object. Call this method when a new file is opened,
+ * or when the structure needs to be updated according the result of a worker calculations
+ * @param {Object} newStructure
+ * @param {Boolean} [rescanAtoms] Pass `false` to prevent `structureUtils.atomList` and
+ * `structureUtils.pairList` from being updated too. By default they do updated as well
+ * @param {Boolean} [fromWorker] For internal use. Pass `true` to prevent notifying the worker
+ */
+structureUtils.overwrite = function (newStructure, rescanAtoms, fromWorker) {
+    var atoms,
+        atomList, pairList,
+        i, j, len;
+    OE.structure = newStructure;
+    if (rescanAtoms !== false) {
+        atomList = structureUtils.atomList;
+        pairList = structureUtils.pairList;
+        atomList.length = pairList.length = 0;
+        atoms = OE.structure.atoms;
+        for (i = 0, len = atoms.length; i < len; i++) {
+            if (atomList.indexOf(atoms[i].el) === -1) {
+                atomList.push(atoms[i].el);
+            }
+        }
+        for (i = 0, len = atomList.length; i < len; i++) {
+            for (j = i; j < len; j++) {
+                pairList.push(atomList[i] + atomList[j]);
+            }
+        }
+        // Add extra-graph pairs
+        structureUtils.pairList = pairList.concat(pairList.map(function (pair) {
+            return "x-" + pair;
+        }));
+    }
+    structureUtils.trigger("updateStructure", (rescanAtoms !== false));
+    if (fromWorker !== true) {
+        structureUtils.syncWorker();
+    }
 };
 
 structureUtils.setPotentials = function (potentials) {
@@ -39,9 +86,14 @@ structureUtils.setPotentials = function (potentials) {
     structureUtils.syncWorker();
 };
 
+structureUtils.syncWorker = function () {
+    OE.worker.invoke("setStructure", OE.structure);
+};
+
 
 OE.worker.on("updateStructure", function (updatedStructure) {
-    OE.structure = updatedStructure;
+    // No need to rescan atom list, since only coordinates were changed
+    structureUtils.overwrite(updatedStructure, false, true);
     OE.view.render();
 });
 

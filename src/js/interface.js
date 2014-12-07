@@ -71,10 +71,90 @@ ui.abstractDialog = _.extend(Object.create(ui.proto), {
 });
 
 
+ui.graph = (_.extend(Object.create(ui.abstractDialog), {
+    $el: $(".oe-graph-form"),
+
+    tpl: _.template($("#oe-cutoffs-tpl").html()),
+
+    init: function () {
+        OE.structureUtils.on("updateStructure", function (pairsUpdated) {
+            if (pairsUpdated) {
+                ui.graph.resetHTML.call(ui.graph);
+            }
+        });
+        return ui.abstractDialog.init.apply(this, arguments);
+    },
+
+    events: [
+        {type: "click", owner: ".oe-cutoffs", filter: ".oe-cutoff", handler: "handlePairSelect"},
+        {type: "change", owner: ".oe-cutoff-slider", handler: "handleSliderChange"},
+        {type: "input", owner: "#oe-cutoff-exact", handler: "handleCutoffInput"},
+        {type: "change", owner: "#oe-cutoff-exact", handler: "handleCutoffChange"}
+    ],
+
+    handlePairSelect: function (e) {
+        var target = $(e.target);
+        $(e.delegateTarget).find(".oe-cutoff").not(target).removeClass("active");
+        target.addClass("active");
+        $("#oe-cutoff-exact").val(target.text().trim()).get(0).select();
+    },
+
+    handleSliderChange: function (e) {
+        var target = e.target,
+            minBound = +$("#oe-cutoff-min").val(),
+            maxBound = +$("#oe-cutoff-max").val(),
+            min = +target.min,
+            max = +target.max,
+            cutoff = minBound + (target.value - min) * (maxBound - minBound) / (max - min);
+        $("#oe-cutoff-exact").val(cutoff.toFixed(4)).trigger("input");
+        this.updateGraph($(".oe-cutoff.active").data("pair"), cutoff);
+    },
+
+    handleCutoffInput: function (e) {
+        $(".oe-cutoff.active").text(e.target.value);
+    },
+
+    handleCutoffChange: function (e) {
+        var slider, sliderVal,
+            minBound, maxBound, min, max;
+        if (e.target.checkValidity()) {
+            slider = $(".oe-cutoff-slider");
+            minBound = +$("#oe-cutoff-min").val();
+            maxBound = +$("#oe-cutoff-max").val();
+            min = +slider[0].min;
+            max = +slider[0].max;
+            sliderVal = min + (e.target.value - minBound) * (max - min) / (maxBound - minBound);
+            slider.val(sliderVal.toFixed(2));
+            this.updateGraph($(".oe-cutoff.active").data("pair"), +e.target.value);
+        }
+    },
+
+    resetHTML: function () {
+        this.$el.find(".oe-cutoffs")
+            .html(this.tpl({pairs: OE.structureUtils.pairList}))
+            .find(".oe-cutoff").eq(0).addClass("active");
+    },
+
+    updateGraph: function (pair, cutoff) {
+        // TODO: set busy flag
+        OE.worker.invoke("reconnectPairs", {pair: pair, cutoff: cutoff});
+    }
+})).init();
+
+
 ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
     $el: $(".oe-potential-form"),
 
     tpl: _.template($("#oe-potentials-tpl").html()),
+
+    init: function () {
+        OE.structureUtils.on("updateStructure", function (pairsUpdated) {
+            if (pairsUpdated) {
+                ui.potentials.resetHTML.call(ui.potentials);
+            }
+        });
+        return ui.abstractDialog.init.apply(this, arguments);
+    },
 
     events: [
         {type: "change", owner: ".load-potentials", handler: "handleLoad"},
@@ -108,32 +188,14 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
 
     handleApply: function () {
         if (this.$el[0].checkValidity()) {
-            return Object.getPrototypeOf(this).handleApply.apply(this, arguments);
+            return ui.abstractDialog.handleApply.apply(this, arguments);
         } else {
             window.alert("Please, fix invalid input first");
         }
     },
 
-    setup: function () {
-        var atoms = OE.structure.atoms,
-            atomList = [],
-            pairs = [],
-            i, j, len;
-        for (i = 0, len = atoms.length; i < len; i++) {
-            if (atomList.indexOf(atoms[i].el) === -1) {
-                atomList.push(atoms[i].el);
-            }
-        }
-        for (i = 0, len = atomList.length; i < len; i++) {
-            for (j = i; j < len; j++) {
-                pairs.push(atomList[i] + atomList[j]);
-            }
-        }
-        // Add extra-graph pairs
-        pairs = pairs.concat(pairs.map(function (pair) {
-            return "x-" + pair;
-        }));
-        $("ul.oe-potentials").html(ui.potentials.tpl({pairs: pairs}));
+    resetHTML: function () {
+        this.$el.find("ul.oe-potentials").html(this.tpl({pairs: OE.structureUtils.pairList}));
     },
 
     apply: function () {
@@ -183,19 +245,19 @@ ui.appearance = (_.extend(Object.create(ui.abstractDialog), {
 ui.info = (_.extend(Object.create(ui.abstractDialog), {
     $el: $(".oe-info-dialog"),
 
-    setup: function () {
+    init: function () {
         var tpls = this.tpls = {};
         this.$el.find("script[type='text/template'][data-info]").each(function () {
             var tpl = $(this);
             tpls[tpl.data("info")] = _.template(tpl.html());
         });
-        return this.init();
+        return ui.abstractDialog.init.apply(this, arguments);
     },
 
     applyTpl: function (tpl, data) {
         this.$el.find(".oe-info-dialog-text").html(this.tpls[tpl](data));
     }
-})).setup();
+})).init();
 
 
 ui.menu = (_.extend(Object.create(ui.proto), {
@@ -237,7 +299,7 @@ ui.menu = (_.extend(Object.create(ui.proto), {
     },
 
     handleFile: function (e) {
-        OE.fileAPI.loadHIN(e.target.files[0], ui.potentials.setup);
+        OE.fileAPI.loadHIN(e.target.files[0]);
     },
 
     loadAction: function () {
@@ -248,6 +310,10 @@ ui.menu = (_.extend(Object.create(ui.proto), {
         // TODO: implement action
     },
 
+    alterGraphAction: function () {
+        ui.graph.show();
+    },
+
     setupAction: function () {
         ui.potentials.show();
     },
@@ -256,7 +322,7 @@ ui.menu = (_.extend(Object.create(ui.proto), {
         OE.worker.invoke("totalEnergy");
     },
 
-    alterAction: function () {
+    alterViewAction: function () {
         ui.appearance.show();
     }
 })).init();

@@ -3,7 +3,7 @@
     -moz-@{property}:@value;
     -o-@{property}:@value;
     @{property}:@value;
-    }
+}
 
 //@vendor-prefixes: -webkit-, -moz-, -ms-, -o-, "";
 //.vendor-prefix2(@property; @value) {
@@ -13,10 +13,10 @@
 //        @val: replace(@value, "\-\*\-", @prefix, "g");
 //        @{prop}:@val;
 //        .prefix-loop(@prefix-counter + 1);
-//        }
-//    .prefix-loop(1);
 //    }
+//    .prefix-loop(1);
+//}
 
 .box-sizing(...) {
     .vendor-prefix(box-sizing; @arguments);
-    }
+}

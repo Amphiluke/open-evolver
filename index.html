@@ -19,6 +19,7 @@
     <li>
         <button type="menu" value="Edit" menu="edit-menu"></button>
         <menu id="edit-menu" type="popup">
+            <menuitem label="Graph…" data-action="alterGraph"></menuitem>
             <menuitem label="Set parameters…" data-action="setup"></menuitem>
         </menu>
     </li>
@@ -31,10 +32,39 @@
     <li>
         <button type="menu" value="View" menu="view-menu"></button>
         <menu id="view-menu" type="popup">
-            <menuitem label="Appearance…" data-action="alter"></menuitem>
+            <menuitem label="Appearance…" data-action="alterView"></menuitem>
         </menu>
     </li>
 </menu>
+
+<form action="#" class="oe-dialog oe-graph-form hidden" autocomplete="off">
+    <h2>Graph</h2>
+    <div class="oe-cutoffs">
+        <script type="text/template" id="oe-cutoffs-tpl">
+            <% _.each(pairs, function (pair) { %>
+                <button type="button" class="oe-cutoff" data-pair="<%- pair %>">0.0000</button>
+            <% }); %>
+        </script>
+    </div>
+    <p>
+        <input type="range" class="oe-cutoff-slider" min="0" max="100" step="1" value="0"/>
+        <label class="oe-cutoff-min">
+            <input type="text" id="oe-cutoff-min" pattern="\d*\.?\d+([eE][+-]?\d+)?" value="0"/>
+            Minimum, Å
+        </label>
+        <label class="oe-cutoff-max">
+            <input type="text" id="oe-cutoff-max" pattern="\d*\.?\d+([eE][+-]?\d+)?" value="5"/>
+            Maximum, Å
+        </label>
+        <label class="oe-cutoff-exact">
+            <input type="text" id="oe-cutoff-exact" pattern="\d*\.?\d+([eE][+-]?\d+)?" value="0.0000"/>
+            Cutoff, Å
+        </label>
+    </p>
+    <p class="oe-dialog-btns">
+        <input type="button" class="oe-apply" value="OK"/>
+    </p>
+</form>
 
 <form action="#" class="oe-dialog oe-potential-form hidden" autocomplete="off">
     <h2>Potential parameters</h2>
@@ -48,10 +78,10 @@
             </li>
             <% _.each(pairs, function (pair) { %>
                 <li class="oe-potential-row" data-pair="<%- pair %>">
-                    <span><label for="oe-<%- pair %>"><%- pair %></label></span>
-                    <span><input type="text" id="oe-<%- pair %>" data-param="D0" pattern="\d*\.?\d+([eE][+-]?\d+)?"/></span>
-                    <span><input type="text" data-param="R0" pattern="\d*\.?\d+([eE][+-]?\d+)?"/></span>
-                    <span><input type="text" data-param="w0" pattern="\d*\.?\d+([eE][+-]?\d+)?"/></span>
+                    <label for="oe-<%- pair %>"><%- pair %></label>
+                    <label><input type="text" id="oe-<%- pair %>" data-param="D0" pattern="\d*\.?\d+([eE][+-]?\d+)?"/></label>
+                    <label><input type="text" data-param="R0" pattern="\d*\.?\d+([eE][+-]?\d+)?"/></label>
+                    <label><input type="text" data-param="w0" pattern="\d*\.?\d+([eE][+-]?\d+)?"/></label>
                 </li>
             <% }); %>
         </script>
@@ -97,11 +127,12 @@
 <script src="//cdnjs.cloudflare.com/ajax/libs/three.js/r69/three.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>
 <script src="src/js/fallback.js"></script>
+<script src="src/js/observer.js?concat=1"></script>
 <script src="src/js/utils.js?concat=1"></script>
 <script src="src/js/worker.js?concat=1"></script>
+<script src="src/js/structure.js?concat=1"></script>
 <script src="src/js/file-processing.js?concat=1"></script>
 <script src="src/js/view.js?concat=1"></script>
-<script src="src/js/structure.js?concat=1"></script>
 <script src="src/js/interface.js?concat=1"></script>
 </body>
 </html>

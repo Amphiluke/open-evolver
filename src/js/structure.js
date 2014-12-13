@@ -91,6 +91,11 @@ structureUtils.syncWorker = function () {
 };
 
 
+OE.worker.on("setStructure", function (updatedStructure) {
+    // The worker optimizes structure's bond array. So, do sync
+    structureUtils.overwrite(updatedStructure, false, true);
+});
+
 OE.worker.on("updateStructure", function (updatedStructure) {
     // No need to rescan atom list, since only coordinates were changed
     structureUtils.overwrite(updatedStructure, false, true);

@@ -4,12 +4,23 @@
 
 var api = {},
     core = {},
-    structure = null;
+    structure = null,
+    tightBondCount = 0;
 
 
 api.setStructure = function (data) {
+    // Move all existing extra-bonds to the end of a bond array.
+    // This allows to speed up iterations through bonds of extra-graph
+    for (var bonds = data.bonds, i = 0, j = 0, len = bonds.length; i < len; i++) {
+        if (bonds[j].type === "x") {
+            bonds.push.apply(bonds, bonds.splice(j, 1));
+        } else {
+            j++;
+        }
+    }
+    tightBondCount = j;
     structure = data;
-    return true;
+    return structure;
 };
 
 api.updateStructure = function () {
@@ -22,14 +33,14 @@ api.totalEnergy = function () {
 
 api.reconnectPairs = function (data) {
     var elements = data.pair.match(/[A-Z][^A-Z]*/g),
-        cutoff = data.cutoff,
+        cutoff2 = data.cutoff * data.cutoff,
         atoms = structure.atoms,
         aLen = atoms.length,
         bonds = structure.bonds,
-        bLen,
+        bond, bLen,
         i, j, k,
         jEl,
-        dist;
+        dist2;
     for (i = 0; i < aLen; i++) {
         if (atoms[i].el === elements[0]) {
             jEl = elements[1];
@@ -40,21 +51,21 @@ api.reconnectPairs = function (data) {
         }
         for (j = i + 1; j < aLen; j++) {
             if (atoms[j].el === jEl) {
-                dist = core.distance(i, j);
-                for (k = 0, bLen = bonds.length; k < bLen; k++) {
-                    if ((bonds[k].iAtm === i && bonds[k].jAtm === j) ||
-                        (bonds[k].iAtm === j && bonds[k].jAtm === i)) {
-                        if (bonds[k].type !== "x") {
+                dist2 = core.sqrDistance(i, j);
+                for (k = tightBondCount, bond = bonds[k], bLen = bonds.length; k < bLen; bond = bonds[++k]) {
+                    if ((bond.iAtm === i && bond.jAtm === j) ||
+                        (bond.iAtm === j && bond.jAtm === i)) {
+                        if (bond.type !== "x") {
                             break; // only extra-graph bonds are breakable
                         }
-                        if (dist > cutoff) {
+                        if (dist2 > cutoff2) {
                             bonds.splice(k, 1); // break x-bond, as the distance is greater than cutoff
                             break;
                         }
                     }
                 }
                 // k === bLen if the above loop wasn't broken (i.e. no bonds found)
-                if (k === bLen && dist <= cutoff) {
+                if (k === bLen && dist2 <= cutoff2) {
                     bonds.push({iAtm: i, jAtm: j, type: "x"});
                 }
             }
@@ -75,13 +86,20 @@ global.onmessage = function (e) {
 };
 
 
-core.distance = function (atom1, atom2) {
+/**
+ * In intensive calculations use this method for comparisons rather than `core.distance`
+ */
+core.sqrDistance = function (atom1, atom2) {
     var at1 = structure.atoms[atom1],
         at2 = structure.atoms[atom2],
         dx = at1.x - at2.x,
         dy = at1.y - at2.y,
         dz = at1.z - at2.z;
-    return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    return dx * dx + dy * dy + dz * dz;
+};
+
+core.distance = function (atom1, atom2) {
+    return Math.sqrt(core.sqrDistance(atom1, atom2));
 };
 
 core.morse = function (params, distance) {

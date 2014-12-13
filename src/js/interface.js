@@ -93,19 +93,16 @@ ui.graph = (_.extend(Object.create(ui.abstractDialog), {
     ],
 
     handlePairSelect: function (e) {
-        var target = $(e.target);
+        var target = $(e.target),
+            cutoff = target.text().trim();
         $(e.delegateTarget).find(".oe-cutoff").not(target).removeClass("active");
         target.addClass("active");
-        $("#oe-cutoff-exact").val(target.text().trim()).get(0).select();
+        $("#oe-cutoff-exact").val(cutoff).get(0).select();
+        $(".oe-cutoff-slider").val(this.cutoff2Slider(+cutoff).toFixed(2));
     },
 
     handleSliderChange: function (e) {
-        var target = e.target,
-            minBound = +$("#oe-cutoff-min").val(),
-            maxBound = +$("#oe-cutoff-max").val(),
-            min = +target.min,
-            max = +target.max,
-            cutoff = minBound + (target.value - min) * (maxBound - minBound) / (max - min);
+        var cutoff = this.slider2Cutoff(+e.target.value);
         $("#oe-cutoff-exact").val(cutoff.toFixed(4)).trigger("input");
         this.updateGraph($(".oe-cutoff.active").data("pair"), cutoff);
     },
@@ -115,18 +112,28 @@ ui.graph = (_.extend(Object.create(ui.abstractDialog), {
     },
 
     handleCutoffChange: function (e) {
-        var slider, sliderVal,
-            minBound, maxBound, min, max;
         if (e.target.checkValidity()) {
-            slider = $(".oe-cutoff-slider");
-            minBound = +$("#oe-cutoff-min").val();
-            maxBound = +$("#oe-cutoff-max").val();
-            min = +slider[0].min;
-            max = +slider[0].max;
-            sliderVal = min + (e.target.value - minBound) * (max - min) / (maxBound - minBound);
-            slider.val(sliderVal.toFixed(2));
+            $(".oe-cutoff-slider").val(this.cutoff2Slider(+e.target.value).toFixed(2));
             this.updateGraph($(".oe-cutoff.active").data("pair"), +e.target.value);
         }
+    },
+
+    cutoff2Slider: function (cutoff) {
+        var slider = $(".oe-cutoff-slider")[0],
+            minBound = +$("#oe-cutoff-min").val(),
+            maxBound = +$("#oe-cutoff-max").val(),
+            min = +slider.min,
+            max = +slider.max;
+        return min + (cutoff - minBound) * (max - min) / (maxBound - minBound);
+    },
+
+    slider2Cutoff: function (value) {
+        var slider = $(".oe-cutoff-slider")[0],
+            minBound = +$("#oe-cutoff-min").val(),
+            maxBound = +$("#oe-cutoff-max").val(),
+            min = +slider.min,
+            max = +slider.max;
+        return minBound + (value - min) * (maxBound - minBound) / (max - min);
     },
 
     resetHTML: function () {

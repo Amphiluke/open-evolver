@@ -13,7 +13,7 @@ api.setStructure = function (data) {
     // This allows to speed up iterations through bonds of extra-graph
     for (var bonds = data.bonds, i = 0, j = 0, len = bonds.length; i < len; i++) {
         if (bonds[j].type === "x") {
-            bonds.push.apply(bonds, bonds.splice(j, 1));
+            bonds.push(bonds.splice(j, 1)[0]);
         } else {
             j++;
         }
@@ -39,8 +39,7 @@ api.reconnectPairs = function (data) {
         bonds = structure.bonds,
         bond, bLen,
         i, j, k,
-        jEl,
-        dist2;
+        jEl;
     for (i = 0; i < aLen; i++) {
         if (atoms[i].el === elements[0]) {
             jEl = elements[1];
@@ -51,22 +50,17 @@ api.reconnectPairs = function (data) {
         }
         for (j = i + 1; j < aLen; j++) {
             if (atoms[j].el === jEl) {
-                dist2 = core.sqrDistance(i, j);
                 for (k = tightBondCount, bond = bonds[k], bLen = bonds.length; k < bLen; bond = bonds[++k]) {
-                    if ((bond.iAtm === i && bond.jAtm === j) ||
-                        (bond.iAtm === j && bond.jAtm === i)) {
-                        if (bond.type !== "x") {
-                            break; // only extra-graph bonds are breakable
-                        }
-                        if (dist2 > cutoff2) {
-                            bonds.splice(k, 1); // break x-bond, as the distance is greater than cutoff
-                            break;
-                        }
+                    if ((bond.iAtm === i && bond.jAtm === j) || (bond.iAtm === j && bond.jAtm === i)) {
+                        break;
                     }
                 }
-                // k === bLen if the above loop wasn't broken (i.e. no bonds found)
-                if (k === bLen && dist2 <= cutoff2) {
-                    bonds.push({iAtm: i, jAtm: j, type: "x"});
+                if (core.sqrDistance(i, j) > cutoff2) {
+                    if (bond) {
+                        bonds.splice(k, 1); // break x-bond, as the distance is greater than cutoff
+                    }
+                } else if (!bond) {
+                    bonds.push({iAtm: i, jAtm: j, type: "x"}); // create x-bond, as one isn't exist yet
                 }
             }
         }

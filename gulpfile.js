@@ -35,7 +35,7 @@ gulp.task("scripts", ["getScriptList"], function () {
 });
 
 gulp.task("detachedScripts", function () {
-    return gulp.src(["./src/js/fallback.js", "./src/js/calc.js"])
+    return gulp.src(["./src/js/fallback.js", "./src/js/calc.js", "./src/js/utils.js"])
         .pipe(uglify())
         .pipe(gulp.dest("build/src/js"));
 });

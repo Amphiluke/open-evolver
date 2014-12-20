@@ -27,6 +27,7 @@
         <button type="menu" value="Calc" menu="calc-menu"></button>
         <menu id="calc-menu" type="popup">
             <menuitem label="Total energy &amp; total bonds" data-action="calcEnergy"></menuitem>
+            <menuitem label="Norm of gradient" data-action="calcGrad"></menuitem>
         </menu>
     </li>
     <li>
@@ -113,6 +114,10 @@
         <h2>Total energy &amp; total bonds</h2>
         <p>Total energy is <var>E</var>&nbsp;=&nbsp;<%= energy.toFixed(5) %>&nbsp;eV</p>
         <p>Bond count is <var>B</var>&nbsp;=&nbsp;<%= bonds %></p>
+    </script>
+    <script type="text/template" data-info="gradient">
+        <h2>Norm of gradient</h2>
+        <p>Norm of gradient is ||<b>grad</b> <var>E</var>||&nbsp;=&nbsp;<%= grad.toFixed(5) %>&nbsp;eV/Å</p>
     </script>
     <div class="oe-info-dialog-text"></div>
     <p class="oe-dialog-btns">

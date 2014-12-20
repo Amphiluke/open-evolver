@@ -5,13 +5,20 @@
 var api = {},
     core = {},
     structure = null,
-    tightBondCount = 0;
+    tightBondCount = 0,
+    grad = {};
 
+
+global.importScripts("utils.js"); // will add `OE.utils` into the global context of the worker
 
 api.setStructure = function (data) {
+    var bonds = data.bonds,
+        bondCount = bonds.length,
+        atomCount = data.atoms.length,
+        i, j;
     // Move all existing extra-bonds to the end of a bond array.
     // This allows to speed up iterations through bonds of extra-graph
-    for (var bonds = data.bonds, i = 0, j = 0, len = bonds.length; i < len; i++) {
+    for (i = 0, j = 0; i < bondCount; i++) {
         if (bonds[j].type === "x") {
             bonds.push(bonds.splice(j, 1)[0]);
         } else {
@@ -20,6 +27,9 @@ api.setStructure = function (data) {
     }
     tightBondCount = j;
     structure = data;
+    grad.x = new Float32Array(atomCount);
+    grad.y = new Float32Array(atomCount);
+    grad.z = new Float32Array(atomCount);
     return structure;
 };
 
@@ -29,6 +39,10 @@ api.updateStructure = function () {
 
 api.totalEnergy = function () {
     return core.totalEnergy();
+};
+
+api.gradient = function () {
+    return core.gradient();
 };
 
 api.reconnectPairs = function (data) {
@@ -101,6 +115,26 @@ core.morse = function (params, distance) {
     return params.D0 * exponent * (exponent - 2);
 };
 
+core.derivative = function (params, distance) {
+    var cA = params.D0 * Math.exp(2 * params.b * params.R0),
+        cB = -2 * params.b,
+        cC = -2 * Math.sqrt(params.D0 * cA),
+        cD = Math.exp(-params.b * distance);
+    return cB * cD * (cA * cD + 0.5 * cC);
+};
+
+core.gradComponent = function (atom1, atom2, bond) {
+    var distance = core.distance(atom1, atom2),
+        factor = core.derivative(structure.bonds[bond].potential, distance) / distance,
+        at1 = structure.atoms[atom1],
+        at2 = structure.atoms[atom2];
+    return {
+        x: factor * (at1.x - at2.x),
+        y: factor * (at1.y - at2.y),
+        z: factor * (at1.z - at2.z)
+    };
+};
+
 core.totalEnergy = function () {
     var energy = 0,
         bonds = structure.bonds,
@@ -109,6 +143,56 @@ core.totalEnergy = function () {
         energy += core.morse(bonds[i].potential, core.distance(bonds[i].iAtm, bonds[i].jAtm));
     }
     return energy;
+};
+
+core.gradient = function () {
+    var atoms = structure.atoms,
+        atomCount = atoms.length,
+        bonds = structure.bonds,
+        bondCount = bonds.length,
+        utils = global.OE.utils,
+        gradComponent,
+        sqrForce, invNorm,
+        i, j, b,
+        mass;
+
+    core.norm = core.sumSqr = core.rootSumSqr = 0;
+
+    for (i = 0; i < atomCount; i++) {
+        grad.x[i] = grad.y[i] = grad.z[i] = 0;
+        for (b = 0; b < bondCount; b++) {
+            if (bonds[b].iAtm === i) {
+                j = bonds[b].jAtm;
+            } else if (bonds[b].jAtm === i) {
+                j = bonds[b].iAtm;
+            } else {
+                continue;
+            }
+            gradComponent = core.gradComponent(i, j, b);
+            grad.x[i] += gradComponent.x;
+            grad.y[i] += gradComponent.y;
+            grad.z[i] += gradComponent.z;
+        }
+
+        sqrForce = grad.x[i] * grad.x[i] + grad.y[i] * grad.y[i] + grad.z[i] * grad.z[i];
+        mass = utils.getAtomicMass(atoms[i].el);
+        core.sumSqr += sqrForce / mass;
+        core.rootSumSqr += sqrForce / (mass * mass);
+        core.norm += sqrForce;
+    }
+
+    core.rootSumSqr = Math.sqrt(core.rootSumSqr);
+    core.norm = Math.sqrt(core.norm);
+
+    // Calc unit vector of internal gradient
+    invNorm = 1 / core.norm;
+    for (i = 0; i < atomCount; i++) {
+        grad.x[i] *= invNorm;
+        grad.y[i] *= invNorm;
+        grad.z[i] *= invNorm;
+    }
+
+    return core.norm;
 };
 
 })(this);

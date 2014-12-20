@@ -331,6 +331,10 @@ ui.menu = (_.extend(Object.create(ui.proto), {
         OE.worker.invoke("totalEnergy");
     },
 
+    calcGradAction: function () {
+        OE.worker.invoke("gradient");
+    },
+
     alterViewAction: function () {
         ui.appearance.show();
     }
@@ -342,6 +346,11 @@ OE.worker.on("totalEnergy", function (data) {
         energy: data,
         bonds: OE.structure.bonds.length
     });
+    ui.info.show();
+});
+
+OE.worker.on("gradient", function (data) {
+    ui.info.applyTpl("gradient", {grad: data});
     ui.info.show();
 });
 

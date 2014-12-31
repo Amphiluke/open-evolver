@@ -230,6 +230,32 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
 
     discard: function () {
         this.$el[0].reset();
+    },
+
+    show: function () {
+        var atoms = OE.structure.atoms,
+            bonds = OE.structure.bonds,
+            len = bonds.length,
+            pairs = [],
+            prefix, el1, el2,
+            i;
+        for (i = 0; i < len; i++) {
+            prefix = (bonds[i].type === "x") ? "x-" : "";
+            el1 = atoms[bonds[i].iAtm].el;
+            el2 = atoms[bonds[i].jAtm].el;
+            if (pairs.indexOf(prefix + el1 + el2) === -1) {
+                pairs.push(prefix + el1 + el2);
+                if (el1 !== el2) {
+                    // Write both variants AB and BA to simplify further search
+                    pairs.push(prefix + el2 + el1);
+                }
+            }
+        }
+        this.$el.find("li[data-pair]").each(function () {
+            var row = $(this);
+            row.toggleClass("missed", pairs.indexOf(row.data("pair")) === -1);
+        });
+        return ui.abstractDialog.show.apply(this, arguments);
     }
 })).init();
 

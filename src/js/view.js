@@ -93,7 +93,7 @@ view.THREE = (function () {
 
     three.camera.position.x = 0;
     three.camera.position.y = 0;
-    three.camera.position.z = 10;
+    three.camera.position.z = 20;
     three.camera.lookAt(three.scene.position);
 
     three.renderer.setClearColor(0x000000);

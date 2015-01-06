@@ -28,6 +28,8 @@
         <menu id="calc-menu" type="popup">
             <menuitem label="Total energy &amp; total bonds" data-action="calcEnergy"></menuitem>
             <menuitem label="Norm of gradient" data-action="calcGrad"></menuitem>
+            <hr/>
+            <menuitem label="Evolve…" data-action="evolve"></menuitem>
         </menu>
     </li>
     <li>
@@ -97,6 +99,17 @@
     </p>
 </form>
 
+<form action="#" class="oe-dialog oe-evolve-form hidden" autocomplete="off">
+    <h2>Evolution configuration</h2>
+    <p><label>Step count<br/><input type="number" value="100" id="oe-step-count"/></label></p>
+    <p><label>Temperature, K<br/><input type="text" value="298" pattern="\d*\.?\d+([eE][+-]?\d+)?" id="oe-temperature"/></label></p>
+    <p><label><input type="checkbox" id="oe-stoch" checked/> Stochastization</label></p>
+    <p class="oe-dialog-btns">
+        <input type="button" class="oe-apply" value="OK"/>
+        <input type="button" class="oe-discard" value="Cancel"/>
+    </p>
+</form>
+
 <form action="#" class="oe-dialog oe-appearance-form hidden" autocomplete="off">
     <h2>Appearance</h2>
     <p>
@@ -127,6 +140,17 @@
 
 <p class="oe-acknowledgements">Powered by <a href="http://threejs.org/" rel="nofollow">three.js</a></p>
 <div id="oe-view"></div>
+
+<div class="oe-report">
+    <script type="text/template" id="oe-report-tpl">
+        <dl>
+            <dt><b>Total binding energy:</b></dt>
+            <dd><%= energy.toFixed(5) %>&nbsp;eV</dd>
+            <dt><b>Norm of gradient:</b></dt>
+            <dd><%= grad.toFixed(5) %>&nbsp;eV/Å</dd>
+        </dl>
+    </script>
+</div>
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/three.js/r69/three.min.js"></script>

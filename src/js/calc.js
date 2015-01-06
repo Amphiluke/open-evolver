@@ -6,7 +6,8 @@ var api = {},
     core = {},
     structure = null,
     tightBondCount = 0,
-    grad = {};
+    grad = {},
+    rndGrad = {};
 
 
 global.importScripts("utils.js"); // will add `OE.utils` into the global context of the worker
@@ -14,7 +15,6 @@ global.importScripts("utils.js"); // will add `OE.utils` into the global context
 api.setStructure = function (data) {
     var bonds = data.bonds,
         bondCount = bonds.length,
-        atomCount = data.atoms.length,
         i, j;
     // Move all existing extra-bonds to the end of a bond array.
     // This allows to speed up iterations through bonds of extra-graph
@@ -27,9 +27,6 @@ api.setStructure = function (data) {
     }
     tightBondCount = j;
     structure = data;
-    grad.x = new Float32Array(atomCount);
-    grad.y = new Float32Array(atomCount);
-    grad.z = new Float32Array(atomCount);
     return structure;
 };
 
@@ -42,7 +39,16 @@ api.totalEnergy = function () {
 };
 
 api.gradient = function () {
-    return core.gradient();
+    grad.alloc();
+    core.gradient();
+    grad.dispose();
+    return core.norm;
+};
+
+api.evolve = function (data) {
+    core.evolve(data.stepCount, data.temperature, data.stoch);
+    api.updateStructure();
+    return {energy: core.totalEnergy(), norm: core.norm};
 };
 
 api.reconnectPairs = function (data) {
@@ -91,6 +97,17 @@ global.onmessage = function (e) {
             data: api[method].call(api, e.data.data)
         });
     }
+};
+
+
+grad.alloc = rndGrad.alloc = function () {
+    var atomCount = structure.atoms.length;
+    this.x = new Float32Array(atomCount);
+    this.y = new Float32Array(atomCount);
+    this.z = new Float32Array(atomCount);
+};
+grad.dispose = rndGrad.dispose = function () {
+    this.x = this.y = this.z = null;
 };
 
 
@@ -193,6 +210,106 @@ core.gradient = function () {
     }
 
     return core.norm;
+};
+
+core.stochGradient = function () {
+    var atoms = structure.atoms,
+        atomCount = atoms.length,
+        bonds = structure.bonds,
+        bondCount = bonds.length,
+        utils = global.OE.utils,
+        gradComponent,
+        sqrForce, rndNorm, invNorm, invRndNorm, rsltNorm,
+        i, j, b,
+        mass;
+
+    rndNorm = core.norm = core.sumSqr = core.rootSumSqr = 0;
+
+    for (i = 0; i < atomCount; i++) {
+        grad.x[i] = grad.y[i] = grad.z[i] = 0;
+        for (b = 0; b < bondCount; b++) {
+            if (bonds[b].iAtm === i) {
+                j = bonds[b].jAtm;
+            } else if (bonds[b].jAtm === i) {
+                j = bonds[b].iAtm;
+            } else {
+                continue;
+            }
+            gradComponent = core.gradComponent(i, j, b);
+            grad.x[i] += gradComponent.x;
+            grad.y[i] += gradComponent.y;
+            grad.z[i] += gradComponent.z;
+        }
+
+        sqrForce = grad.x[i] * grad.x[i] + grad.y[i] * grad.y[i] + grad.z[i] * grad.z[i];
+        mass = utils.getAtomicMass(atoms[i].el);
+        core.sumSqr += sqrForce / mass;
+        core.rootSumSqr += sqrForce / (mass * mass);
+        core.norm += sqrForce;
+
+        rndGrad.x[i] = 50 - Math.random() * 100;
+        rndGrad.y[i] = 50 - Math.random() * 100;
+        rndGrad.z[i] = 50 - Math.random() * 100;
+        rndNorm += rndGrad.x[i] * rndGrad.x[i] + rndGrad.y[i] * rndGrad.y[i] + rndGrad.z[i] * rndGrad.z[i];
+    }
+
+    core.rootSumSqr = Math.sqrt(core.rootSumSqr);
+    core.norm = Math.sqrt(core.norm);
+    rndNorm = Math.sqrt(rndNorm);
+    rsltNorm = 0;
+
+    // Calc unit vectors of internal and external gradient as well as resulting gradient
+    invNorm = 1 / core.norm;
+    invRndNorm = 1 / rndNorm;
+    for (i = 0; i < atomCount; i++) {
+        grad.x[i] *= invNorm;
+        grad.y[i] *= invNorm;
+        grad.z[i] *= invNorm;
+        rndGrad.x[i] *= invRndNorm;
+        rndGrad.y[i] *= invRndNorm;
+        rndGrad.z[i] *= invRndNorm;
+        grad.x[i] += rndGrad.x[i];
+        grad.y[i] += rndGrad.y[i];
+        grad.z[i] += rndGrad.z[i];
+        rsltNorm += grad.x[i] * grad.x[i] + grad.y[i] * grad.y[i] + grad.z[i] * grad.z[i];
+    }
+
+    rsltNorm = Math.sqrt(rsltNorm);
+
+    // Calc unit vector of resulting gradient
+    invNorm = 1 / rsltNorm;
+    for (i = 0; i < atomCount; i++) {
+        grad.x[i] *= invNorm;
+        grad.y[i] *= invNorm;
+        grad.z[i] *= invNorm;
+    }
+
+    return core.norm;
+};
+
+core.evolve = function (stepCount, temperature, stoch) {
+    var gradFn = stoch ? core.stochGradient.bind(core) : core.gradient.bind(core),
+        atoms = structure.atoms,
+        atomCount = atoms.length,
+        factor = 1.2926E-4 * atomCount * temperature, // 1.5NkT [eV]
+        stepNo, step, i;
+    grad.alloc();
+    if (stoch) {
+        rndGrad.alloc();
+    }
+    for (stepNo = 0; stepNo < stepCount; stepNo++) {
+        gradFn();
+        step = factor * core.rootSumSqr / core.sumSqr;
+        for (i = 0; i < atomCount; i++) {
+            atoms[i].x -= step * grad.x[i];
+            atoms[i].y -= step * grad.y[i];
+            atoms[i].z -= step * grad.z[i];
+        }
+    }
+    grad.dispose();
+    if (stoch) {
+        rndGrad.dispose();
+    }
 };
 
 })(this);

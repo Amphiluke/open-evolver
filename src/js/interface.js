@@ -19,7 +19,7 @@ ui.proto = {
         var events = this.events || (this.events = {});
         _.each(events, function (config) {
             var handler = (typeof config.handler === "string") ? this[config.handler] : config.handler;
-            ui.$(config.owner).on(config.type, config.filter || null, handler.bind(this));
+            ui.$(config.owner || this.$el).on(config.type, config.filter || null, handler.bind(this));
         }, this);
         return this;
     }
@@ -35,8 +35,8 @@ ui.abstractDialog = _.extend(Object.create(ui.proto), {
     },
 
     events: [
-        {type: "click", owner: ".oe-apply", handler: "handleApply"},
-        {type: "click", owner: ".oe-discard", handler: "handleDiscard"},
+        {type: "click", filter: ".oe-apply", handler: "handleApply"},
+        {type: "click", filter: ".oe-discard", handler: "handleDiscard"},
         {type: "keyup", owner: $doc, handler: "handleGlobalKeyUp"}
     ],
 
@@ -86,8 +86,8 @@ ui.graph = (_.extend(Object.create(ui.abstractDialog), {
     },
 
     events: [
-        {type: "click", owner: ".oe-cutoffs", filter: ".oe-cutoff", handler: "handlePairSelect"},
-        {type: "change", owner: ".oe-cutoff-slider", handler: "handleSliderChange"},
+        {type: "click", filter: ".oe-cutoffs .oe-cutoff", handler: "handlePairSelect"},
+        {type: "change", filter: ".oe-cutoff-slider", handler: "handleSliderChange"},
         {type: "input", owner: "#oe-cutoff-exact", handler: "handleCutoffInput"},
         {type: "change", owner: "#oe-cutoff-exact", handler: "handleCutoffChange"}
     ],
@@ -166,8 +166,8 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
     },
 
     events: [
-        {type: "change", owner: ".load-potentials", handler: "handleLoad"},
-        {type: "mousedown", owner: ".save-potentials", handler: "handleSave"}
+        {type: "change", filter: ".load-potentials", handler: "handleLoad"},
+        {type: "mousedown", filter: ".save-potentials", handler: "handleSave"}
     ],
 
     handleLoad: function (e) {
@@ -209,14 +209,14 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
 
     apply: function () {
         var potentials = {};
-        this.$el.find("li[data-pair]").each(function () {
-            var row = $(this),
-                params = {};
-            row.find("input[data-param]").each(function () {
-                if (this.value) {
-                    params[$(this).data("param")] = +this.value;
+        this.$el.find("li[data-pair]").each(function (idx, row) {
+            var params = {};
+            row = $(row);
+            row.find("input[data-param]").each(function (idx, el) {
+                if (el.value) {
+                    params[$(el).data("param")] = +el.value;
                     // Setting the defaultValue allows using form.reset() on possible future discards
-                    this.defaultValue = this.value;
+                    el.defaultValue = el.value;
                 } else {
                     return (params = false);
                 }
@@ -251,11 +251,42 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
                 }
             }
         }
-        this.$el.find("li[data-pair]").each(function () {
-            var row = $(this);
+        this.$el.find("li[data-pair]").each(function (idx, row) {
+            row = $(row);
             row.toggleClass("missed", pairs.indexOf(row.data("pair")) === -1);
         });
         return ui.abstractDialog.show.apply(this, arguments);
+    }
+})).init();
+
+
+ui.evolve = (_.extend(Object.create(ui.abstractDialog), {
+    $el: $(".oe-evolve-form"),
+
+    handleApply: function () {
+        if (this.$el[0].checkValidity()) {
+            return ui.abstractDialog.handleApply.apply(this, arguments);
+        } else {
+            window.alert("Please, fix invalid input first");
+        }
+    },
+
+    apply: function () {
+        this.$el.find("input[type='text']").each(function (idx, el) {
+            el.defaultValue = el.value;
+        });
+        this.$el.find("input[type='checkbox']").each(function (idx, el) {
+            el.defaultChecked = el.checked;
+        });
+        OE.worker.invoke("evolve", {
+            stepCount: +$("#oe-step-count").val(),
+            temperature: +$("#oe-temperature").val(),
+            stoch: $("#oe-stoch").prop("checked")
+        });
+    },
+
+    discard: function () {
+        this.$el[0].reset();
     }
 })).init();
 
@@ -282,8 +313,8 @@ ui.info = (_.extend(Object.create(ui.abstractDialog), {
 
     init: function () {
         var tpls = this.tpls = {};
-        this.$el.find("script[type='text/template'][data-info]").each(function () {
-            var tpl = $(this);
+        this.$el.find("script[type='text/template'][data-info]").each(function (idx, tpl) {
+            tpl = $(tpl);
             tpls[tpl.data("info")] = _.template(tpl.html());
         });
         return ui.abstractDialog.init.apply(this, arguments);
@@ -293,6 +324,15 @@ ui.info = (_.extend(Object.create(ui.abstractDialog), {
         this.$el.find(".oe-info-dialog-text").html(this.tpls[tpl](data));
     }
 })).init();
+
+
+ui.report = {
+    tpl: _.template($("#oe-report-tpl").html()),
+
+    print: function (energy, grad) {
+        $(".oe-report").html(this.tpl({energy: energy, grad: grad}));
+    }
+};
 
 
 ui.menu = (_.extend(Object.create(ui.proto), {
@@ -361,6 +401,10 @@ ui.menu = (_.extend(Object.create(ui.proto), {
         OE.worker.invoke("gradient");
     },
 
+    evolveAction: function () {
+        ui.evolve.show();
+    },
+
     alterViewAction: function () {
         ui.appearance.show();
     }
@@ -378,6 +422,10 @@ OE.worker.on("totalEnergy", function (data) {
 OE.worker.on("gradient", function (data) {
     ui.info.applyTpl("gradient", {grad: data});
     ui.info.show();
+});
+
+OE.worker.on("evolve", function (data) {
+    ui.report.print(data.energy, data.norm);
 });
 
 })(this);

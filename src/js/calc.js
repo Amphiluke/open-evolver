@@ -292,6 +292,9 @@ core.evolve = function (stepCount, temperature, stoch) {
         atoms = structure.atoms,
         atomCount = atoms.length,
         factor = 1.2926E-4 * atomCount * temperature, // 1.5NkT [eV]
+        interval = Math.ceil(stepCount / 100),
+        progressFactor = 100 / stepCount,
+        progressMsg = {method: "evolve.progress"},
         stepNo, step, i;
     grad.alloc();
     if (stoch) {
@@ -304,6 +307,10 @@ core.evolve = function (stepCount, temperature, stoch) {
             atoms[i].x -= step * grad.x[i];
             atoms[i].y -= step * grad.y[i];
             atoms[i].z -= step * grad.z[i];
+        }
+        if (stepNo % interval === 0) {
+            progressMsg.data = stepNo * progressFactor;
+            global.postMessage(progressMsg);
         }
     }
     grad.dispose();

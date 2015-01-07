@@ -141,15 +141,16 @@
 <p class="oe-acknowledgements">Powered by <a href="http://threejs.org/" rel="nofollow">three.js</a></p>
 <div id="oe-view"></div>
 
-<div class="oe-report">
-    <script type="text/template" id="oe-report-tpl">
-        <dl>
-            <dt><b>Total binding energy:</b></dt>
+<div class="oe-report hidden">
+    <p><progress id="oe-report-progress" value="0" max="100"></progress></p>
+    <dl id="oe-report-data">
+        <script type="text/template" id="oe-report-tpl">
+            <dt>Total binding energy:</dt>
             <dd><%= energy.toFixed(5) %>&nbsp;eV</dd>
-            <dt><b>Norm of gradient:</b></dt>
+            <dt>Norm of gradient:</dt>
             <dd><%= grad.toFixed(5) %>&nbsp;eV/Å</dd>
-        </dl>
-    </script>
+        </script>
+    </dl>
 </div>
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>

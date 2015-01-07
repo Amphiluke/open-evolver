@@ -1,0 +1,1 @@
+#oe-report-progress{position:relative}#oe-report-progress:after{content:attr(value) "%";font-size:.8em;left:0;margin-left:5px;position:absolute;text-align:center;width:100%}#oe-report-data>dt{font-weight:bold}#oe-report-data>dd{margin:0 0 .5em}

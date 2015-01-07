@@ -1,0 +1,20 @@
+#oe-report-progress {
+    position:relative;
+    &:after {
+        content:attr(value) "%";
+        font-size:0.8em;
+        left:0;
+        margin-left:5px;
+        position:absolute;
+        text-align:center;
+        width:100%;
+    }
+}
+#oe-report-data {
+    > dt {
+        font-weight:bold;
+    }
+    > dd {
+        margin:0 0 0.5em;
+    }
+}

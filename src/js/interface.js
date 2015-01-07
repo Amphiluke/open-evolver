@@ -283,6 +283,7 @@ ui.evolve = (_.extend(Object.create(ui.abstractDialog), {
             temperature: +$("#oe-temperature").val(),
             stoch: $("#oe-stoch").prop("checked")
         });
+        ui.report.show();
     },
 
     discard: function () {
@@ -326,13 +327,28 @@ ui.info = (_.extend(Object.create(ui.abstractDialog), {
 })).init();
 
 
-ui.report = {
+ui.report = (_.extend(Object.create(ui.abstractDialog), {
+    $el: $(".oe-report"),
+
     tpl: _.template($("#oe-report-tpl").html()),
 
-    print: function (energy, grad) {
-        $(".oe-report").html(this.tpl({energy: energy, grad: grad}));
+    init: function () {
+        OE.worker.on("evolve", this.print.bind(this));
+        OE.worker.on("evolve.progress", this.updateProgress.bind(this));
+        return ui.abstractDialog.init.apply(this, arguments);
+    },
+
+    handleGlobalKeyUp: $.noop, // override the inherited behavior hiding the dialog on Esc key press
+
+    print: function (data) {
+        this.updateProgress(100);
+        $("#oe-report-data").html(this.tpl({energy: data.energy, grad: data.norm}));
+    },
+
+    updateProgress: function (value) {
+        $("#oe-report-progress").attr("value", value);
     }
-};
+})).init();
 
 
 ui.menu = (_.extend(Object.create(ui.proto), {
@@ -422,10 +438,6 @@ OE.worker.on("totalEnergy", function (data) {
 OE.worker.on("gradient", function (data) {
     ui.info.applyTpl("gradient", {grad: data});
     ui.info.show();
-});
-
-OE.worker.on("evolve", function (data) {
-    ui.report.print(data.energy, data.norm);
 });
 
 })(this);

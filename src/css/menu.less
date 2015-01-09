@@ -50,6 +50,15 @@
         &:before {
             content:attr(label);
         }
+        &[disabled] {
+            color:#a0a0a0;
+            &:hover {
+                background:none;
+            }
+            &:before {
+                text-shadow:0 1px 0 #fff;
+            }
+        }
     }
     hr {
         border:1px inset #fff;

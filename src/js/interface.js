@@ -5,6 +5,8 @@
 var $ = global.jQuery,
     _ = global._,
     OE = global.OE,
+    actions = OE.actions,
+    app = OE.app,
     ui = OE.ui || (OE.ui = {}),
     $doc = $(document);
 
@@ -226,6 +228,7 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
             }
         });
         OE.structureUtils.setPotentials(potentials);
+        app.setState(app.PARAMS_SET);
     },
 
     discard: function () {
@@ -354,6 +357,12 @@ ui.report = (_.extend(Object.create(ui.abstractDialog), {
 ui.menu = (_.extend(Object.create(ui.proto), {
     $el: $(".oe-menu"),
 
+    init: function () {
+        this.setItemStates();
+        actions.on("stateChange", this.setItemStates.bind(this));
+        return ui.proto.init.apply(this, arguments);
+    },
+
     events: [
         {type: "click.oe", owner: $doc, handler: "handleGlobalClick"},
         {type: "mouseenter", owner: ".oe-menu", filter: "button[menu]", handler: "handleHover"},
@@ -383,46 +392,34 @@ ui.menu = (_.extend(Object.create(ui.proto), {
     },
 
     handleAction: function (e) {
-        var actionHandler = $(e.target).data("action") + "Action";
-        if (typeof this[actionHandler] === "function") {
-            this[actionHandler]();
+        var action = $(e.target).data("action");
+        if (actions[action] && actions[action].exec) {
+            if (action === "load") { // the action "load" requires a file to be specified
+                $("#oe-file").trigger("click");
+            } else {
+                actions[action].exec();
+            }
         }
     },
 
     handleFile: function (e) {
-        OE.fileAPI.loadHIN(e.target.files[0]);
+        actions.load.exec(e.target.files[0]);
     },
 
-    loadAction: function () {
-        $("#oe-file").trigger("click");
-    },
-
-    saveAction: function () {
-        // TODO: implement action
-    },
-
-    alterGraphAction: function () {
-        ui.graph.show();
-    },
-
-    setupAction: function () {
-        ui.potentials.show();
-    },
-
-    calcEnergyAction: function () {
-        OE.worker.invoke("totalEnergy");
-    },
-
-    calcGradAction: function () {
-        OE.worker.invoke("gradient");
-    },
-
-    evolveAction: function () {
-        ui.evolve.show();
-    },
-
-    alterViewAction: function () {
-        ui.appearance.show();
+    setItemStates: function (action) {
+        var items = $("menuitem[data-action]");
+        if (action) {
+            items = items.filter("[data-action='" + action + "']");
+        }
+        items.each(function (idx, item) {
+            var state = actions[item.getAttribute("data-action")].enabled,
+                disabled = item.hasAttribute("disabled");
+            if (state && disabled) {
+                item.removeAttribute("disabled");
+            } else if (!state && !disabled) {
+                item.setAttribute("disabled", "disabled");
+            }
+        });
     }
 })).init();
 

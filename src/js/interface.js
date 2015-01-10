@@ -5,8 +5,7 @@
 var $ = global.jQuery,
     _ = global._,
     OE = global.OE,
-    actions = OE.actions,
-    app = OE.app,
+    actions = OE.app.actions,
     ui = OE.ui || (OE.ui = {}),
     $doc = $(document);
 
@@ -228,7 +227,6 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
             }
         });
         OE.structureUtils.setPotentials(potentials);
-        app.setState(app.PARAMS_SET);
     },
 
     discard: function () {
@@ -263,8 +261,36 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
 })).init();
 
 
+ui.report = (_.extend(Object.create(ui.abstractDialog), {
+    $el: $(".oe-report"),
+
+    tpl: _.template($("#oe-report-tpl").html()),
+
+    handleGlobalKeyUp: $.noop, // override the inherited behavior hiding the dialog on Esc key press
+
+    print: function (data) {
+        this.updateProgress(100);
+        $("#oe-report-data").html(this.tpl({energy: data.energy, grad: data.norm}));
+    },
+
+    updateProgress: function (value) {
+        $("#oe-report-progress").attr("value", value);
+    }
+})).init();
+
+
 ui.evolve = (_.extend(Object.create(ui.abstractDialog), {
     $el: $(".oe-evolve-form"),
+
+    init: function () {
+        OE.worker.on("evolve", this.handleEvolveStop.bind(this));
+        OE.worker.on("evolve.progress", ui.report.updateProgress.bind(ui.report));
+        return ui.abstractDialog.init.apply(this, arguments);
+    },
+
+    handleEvolveStop: function (data) {
+        ui.report.print(data);
+    },
 
     handleApply: function () {
         if (this.$el[0].checkValidity()) {
@@ -330,36 +356,12 @@ ui.info = (_.extend(Object.create(ui.abstractDialog), {
 })).init();
 
 
-ui.report = (_.extend(Object.create(ui.abstractDialog), {
-    $el: $(".oe-report"),
-
-    tpl: _.template($("#oe-report-tpl").html()),
-
-    init: function () {
-        OE.worker.on("evolve", this.print.bind(this));
-        OE.worker.on("evolve.progress", this.updateProgress.bind(this));
-        return ui.abstractDialog.init.apply(this, arguments);
-    },
-
-    handleGlobalKeyUp: $.noop, // override the inherited behavior hiding the dialog on Esc key press
-
-    print: function (data) {
-        this.updateProgress(100);
-        $("#oe-report-data").html(this.tpl({energy: data.energy, grad: data.norm}));
-    },
-
-    updateProgress: function (value) {
-        $("#oe-report-progress").attr("value", value);
-    }
-})).init();
-
-
 ui.menu = (_.extend(Object.create(ui.proto), {
     $el: $(".oe-menu"),
 
     init: function () {
         this.setItemStates();
-        actions.on("stateChange", this.setItemStates.bind(this));
+        OE.app.on("stateChange", this.setItemStates.bind(this));
         return ui.proto.init.apply(this, arguments);
     },
 

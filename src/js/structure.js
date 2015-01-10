@@ -4,6 +4,7 @@
 
 var _ = global._,
     OE = global.OE,
+    app = OE.app,
     structureUtils = OE.structureUtils = Object.create(OE.observer);
 
 
@@ -61,6 +62,7 @@ structureUtils.overwrite = function (newStructure, rescanAtoms, fromWorker) {
     }
     structureUtils.trigger("updateStructure", (rescanAtoms !== false));
     if (fromWorker !== true) {
+        app.setState(app.STRUCTURE_LOADED);
         structureUtils.syncWorker();
     }
 };
@@ -83,6 +85,7 @@ structureUtils.setPotentials = function (potentials) {
             potentials[prefix + atoms[bonds[i].iAtm].el + atoms[bonds[i].jAtm].el] ||
             potentials[prefix + atoms[bonds[i].jAtm].el + atoms[bonds[i].iAtm].el];
     }
+    app.setState(app.PARAMS_SET);
     structureUtils.syncWorker();
 };
 

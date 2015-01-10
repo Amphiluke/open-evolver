@@ -1,10 +1,49 @@
+@import (reference) "utils";
 @import (reference) "ui";
+
+.hourglass-keyframes() {
+    0%, 100% {
+        border-color:#a0a0a0;
+        color:#a0a0a0;
+    }
+    50% {
+        border-color:@border-light-color;
+        color:@border-light-color;
+    }
+}
+@-webkit-keyframes hourglass {
+    .hourglass-keyframes();
+}
+@-moz-keyframes hourglass {
+    .hourglass-keyframes();
+}
+@-o-keyframes hourglass {
+    .hourglass-keyframes();
+}
+@keyframes hourglass {
+    .hourglass-keyframes();
+}
 
 .oe-menu {
     background:@panel-light-color;
     border-bottom:1px solid @border-light-color;
     margin:0;
     padding:0;
+    .app-busy &:after {
+        .vendor-prefix(animation; hourglass 1.5s infinite linear);
+        border:1px solid;
+        border-radius:50%;
+        color:#a0a0a0;
+        content:"\231B";
+        cursor:wait;
+        float:right;
+        font-size:18px;
+        height:23px;
+        line-height:23px;
+        margin:2px 3px 0 0;
+        text-align:center;
+        width:23px;
+    }
     > li {
         display:inline-block;
         list-style:none;

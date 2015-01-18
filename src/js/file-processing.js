@@ -4,7 +4,8 @@
 
 var OE = global.OE || (global.OE = {}),
     fileAPI = OE.fileAPI = {},
-    formats = {};
+    formats = {},
+    blobUrl;
 
 formats.hin = {
     /* HIN file syntax defines the atom record as follows:
@@ -50,14 +51,30 @@ formats.hin = {
 
 fileAPI.loadHIN = function (fileObj, cb) {
     var reader = new FileReader();
-    reader.addEventListener("load", function () {
-        OE.structureUtils.overwrite(formats.hin.parse(reader.result));
+    reader.addEventListener("load", function (e) {
+        OE.structureUtils.overwrite(formats.hin.parse(e.target.result));
         OE.view.render();
         if (typeof cb === "function") {
             cb();
         }
     }, false);
     reader.readAsText(fileObj);
+};
+
+fileAPI.getBlobURL = function (data, type) {
+    var blob;
+    if (data instanceof global.Blob) {
+        blob = data;
+    } else {
+        blob = new global.Blob([data], {type: type || "text/plain"});
+    }
+    if (blobUrl) {
+        // Blob URLs are used only short periods of time (e.g. at the moment a hyperlink is clicked).
+        // So, revoke the previous URL before creating the new one.
+        global.URL.revokeObjectURL(blobUrl);
+    }
+    blobUrl = global.URL.createObjectURL(blob);
+    return blobUrl;
 };
 
 })(this);

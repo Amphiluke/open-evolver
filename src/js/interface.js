@@ -193,7 +193,7 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
                     return this.value;
                 }).get().join("\t");
             }).get().join("\r\n");
-        e.target.href = "data:text/plain;base64," + btoa(text);
+        e.target.href = OE.fileAPI.getBlobURL(text);
     },
 
     handleApply: function () {

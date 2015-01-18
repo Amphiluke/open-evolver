@@ -45,4 +45,9 @@ gulp.task("styles", function () {
         .pipe(gulp.dest("build/src/css"));
 });
 
-gulp.task("default", ["html", "scripts", "detachedScripts", "styles"]);
+gulp.task("images", function () {
+    return gulp.src("./src/img/**/*")
+        .pipe(gulp.dest("build/src/img"));
+});
+
+gulp.task("default", ["html", "scripts", "detachedScripts", "styles", "images"]);

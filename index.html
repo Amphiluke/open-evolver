@@ -40,6 +40,37 @@
     </li>
 </menu>
 
+<form action="#" class="oe-dialog oe-save-form hidden">
+    <h2>Save structure</h2>
+    <p>
+        <label for="oe-file-type">Select file type to save</label><br/>
+        <select id="oe-file-type">
+            <optgroup label="HyperChem" data-type="hin">
+                <option value="hin-basic" data-graph="basic" selected>HIN file (basic graph only)</option>
+                <option value="hin-extra" data-graph="extra">HIN file (basic and graphs)</option>
+                <option value="hin-empty" data-graph="empty">HIN file (empty graph)</option>
+            </optgroup>
+            <optgroup label="Tripos MOL2" data-type="ml2">
+                <option value="ml2-basic" data-graph="basic" disabled>ML2 file (basic graph only)</option>
+                <option value="ml2-extra" data-graph="extra" disabled>ML2 file (basic and graphs)</option>
+                <option value="ml2-empty" data-graph="empty" disabled>ML2 file (empty graph)</option>
+            </optgroup>
+            <optgroup label="Cartesian" data-type="xyz">
+                <option value="xyz" disabled>XYZ file</option>
+            </optgroup>
+        </select>
+    </p>
+    <div>
+        <p class="type-description" data-type="hin-basic">Save in HyperChem file format (*.hin) skipping extra-bonds (they will be lost).</p>
+        <p class="type-description hidden" data-type="hin-extra">Save in HyperChem file format (*.hin) and include extra-bonds. Such files could be reopened later in OpenEvolver, but they are not compatible with HyperChem as it doesn't recognize bonds of x-type (extra-bonds).</p>
+        <p class="type-description hidden" data-type="hin-empty">Save in HyperChem file format (*.hin) with empty graph (separate atoms).</p>
+    </div>
+    <p class="oe-dialog-btns">
+        <a href="#" class="oe-apply" download="">Save</a>
+        <input type="button" class="oe-discard" value="Cancel"/>
+    </p>
+</form>
+
 <form action="#" class="oe-dialog oe-graph-form hidden" autocomplete="off">
     <h2>Graph</h2>
     <div class="oe-cutoffs">

@@ -149,7 +149,7 @@ app.addAction("load", function (file) {
 });
 
 app.addAction("save", function () {
-    // TODO: implement action
+    OE.ui.save.show();
 });
 
 app.addAction("alterGraph", function () {

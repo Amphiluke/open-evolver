@@ -61,6 +61,50 @@ fileAPI.loadHIN = function (fileObj, cb) {
     reader.readAsText(fileObj);
 };
 
+fileAPI.makeFile = function (type, graphType) {
+    type = type.toUpperCase();
+    if (typeof this["make" + type] === "function") {
+        return this["make" + type](graphType);
+    }
+    return false;
+};
+
+fileAPI.makeHIN = function (graphType) {
+    var hin = ";The structure was saved in OpenEvolver\nforcefield mm+\n",
+        atoms = OE.structure.atoms,
+        atomCount = atoms.length,
+        atom,
+        bonds, bondCount, bond, nbors,
+        i;
+    if (graphType === "empty") {
+        for (i = 0; i < atomCount; i++) {
+            atom = atoms[i];
+            hin += "mol " + (i + 1) + "\natom 1 - " + atom.el + " ** - 0 " +
+                atom.x.toFixed(4) + " " + atom.y.toFixed(4) + " " + atom.z.toFixed(4) +
+                " 0\nendmol " + (i + 1) + "\n";
+        }
+    } else {
+        bonds = OE.structure.bonds;
+        nbors = new Array(atomCount);
+        for (i = 0, bondCount = bonds.length; i < bondCount; i++) {
+            bond = bonds[i];
+            if (graphType !== "basic" || bond.type !== "x") {
+                (nbors[bond.iAtm] || (nbors[bond.iAtm] = [])).push((bond.jAtm + 1) + " " + bond.type);
+                (nbors[bond.jAtm] || (nbors[bond.jAtm] = [])).push((bond.iAtm + 1) + " " + bond.type);
+            }
+        }
+        hin += "mol 1\n"; // multiple molecule cases are not supported in this version
+        for (i = 0; i < atomCount; i++) {
+            atom = atoms[i];
+            hin += "atom " + (i + 1) + " - " + atom.el + " ** - 0 " +
+                atom.x.toFixed(4) + " " + atom.y.toFixed(4) + " " + atom.z.toFixed(4) + " " +
+                (nbors[i] ? nbors[i].length + " " + nbors[i].join(" ") : "0") + "\n";
+        }
+        hin += "endmol 1";
+    }
+    return hin;
+};
+
 fileAPI.getBlobURL = function (data, type) {
     var blob;
     if (data instanceof global.Blob) {

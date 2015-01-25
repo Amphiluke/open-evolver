@@ -72,6 +72,33 @@ ui.abstractDialog = _.extend(Object.create(ui.proto), {
 });
 
 
+ui.save = (_.extend(Object.create(ui.abstractDialog), {
+    $el: $(".oe-save-form"),
+
+    events: [
+        {type: "change", owner: "#oe-file-type", handler: "handleTypeChange"},
+        {type: "mousedown", filter: ".oe-apply", handler: "handleSave"}
+    ],
+
+    handleTypeChange: function (e) {
+        this.$el.find(".type-description")
+            .addClass("hidden")
+            .filter("[data-type='" + e.target.value + "']").removeClass("hidden");
+    },
+
+    handleSave: function (e) {
+        var selected = $("#oe-file-type").find("option:selected"),
+            type = selected.closest("optgroup").data("type"),
+            graphType = selected.data("graph"),
+            file = OE.fileAPI.makeFile(type, graphType);
+        if (file) {
+            e.target.setAttribute("download", "untitled." + type);
+            e.target.href = OE.fileAPI.getBlobURL(file);
+        }
+    }
+})).init();
+
+
 ui.graph = (_.extend(Object.create(ui.abstractDialog), {
     $el: $(".oe-graph-form"),
 
@@ -146,7 +173,6 @@ ui.graph = (_.extend(Object.create(ui.abstractDialog), {
     },
 
     updateGraph: function (pair, cutoff) {
-        // TODO: set busy flag
         OE.worker.invoke("reconnectPairs", {pair: pair, cutoff: cutoff});
     }
 })).init();

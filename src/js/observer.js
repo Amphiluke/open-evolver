@@ -40,7 +40,7 @@ observer.off = function (event, handler) {
             }
         }
     } else {
-        handlers.length = 0;
+        handlers[event].length = 0;
         delete handlers[event];
     }
 };
@@ -48,16 +48,14 @@ observer.off = function (event, handler) {
 observer.trigger = function (event) {
     var handlers = getObserverHandlers(this),
         args,
-        i, len,
-        result;
+        i, len;
     if (!handlers[event]) {
         return;
     }
     args = Array.prototype.slice.call(arguments, 1);
     for (i = 0, len = handlers[event].length; i < len; i++) {
-        result = handlers[event][i].apply(null, args);
+        handlers[event][i].apply(null, args);
     }
-    return result;
 };
 
 })(this);

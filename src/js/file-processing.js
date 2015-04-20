@@ -50,15 +50,13 @@ formats.hin = {
 };
 
 fileAPI.loadHIN = function (fileObj, cb) {
-    var reader = new FileReader();
-    reader.addEventListener("load", function (e) {
-        OE.structureUtils.overwrite(formats.hin.parse(e.target.result));
+    this.readFile(fileObj, function (contents) {
+        OE.structureUtils.overwrite(formats.hin.parse(contents));
         OE.view.render();
         if (typeof cb === "function") {
-            cb();
+            cb(contents);
         }
-    }, false);
-    reader.readAsText(fileObj);
+    });
 };
 
 fileAPI.makeFile = function (type, graphType) {
@@ -103,6 +101,31 @@ fileAPI.makeHIN = function (graphType) {
         hin += "endmol 1";
     }
     return hin;
+};
+
+/**
+ * Read a file
+ * @param {String|Object} ref File reference - either a path, or a file object (or Blob)
+ * @param {Function} cb A callback function to be invoked after the file is read
+ */
+fileAPI.readFile = function (ref, cb) {
+    var xhr, reader;
+    if (typeof ref === "string") { // file path was passed
+        xhr = new XMLHttpRequest();
+        xhr.open("GET", ref, true);
+        xhr.addEventListener("load", function () {
+            if (xhr.status === 200) {
+                cb(xhr.responseText);
+            }
+        }, false);
+        xhr.send(null);
+    } else { // file object or blob was passed
+        reader = new global.FileReader();
+        reader.addEventListener("load", function () {
+            cb(reader.result);
+        }, false);
+        reader.readAsText(ref);
+    }
 };
 
 fileAPI.getBlobURL = function (data, type) {

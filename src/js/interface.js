@@ -198,17 +198,15 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
     ],
 
     handleLoad: function (e) {
-        var reader = new FileReader();
-        reader.addEventListener("load", function () {
-            var rows = reader.result.split(/\r?\n/);
+        OE.fileAPI.readFile(e.target.files[0], function (contents) {
+            var rows = contents.split(/\r?\n/);
             _.each(rows, function (row) {
                 var params = row.split("\t");
                 ui.potentials.$el.find("li[data-pair='" + params[0] + "'] input").val(function (index) {
                     return params[index + 1] || "";
                 });
             });
-        }, false);
-        reader.readAsText(e.target.files[0]);
+        });
     },
 
     handleSave: function (e) {

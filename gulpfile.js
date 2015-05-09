@@ -4,7 +4,8 @@ var fs = require("fs"),
     gulp = require("gulp"),
     uglify = require("gulp-uglify"),
     concat = require("gulp-concat"),
-    replace = require("gulp-replace");
+    replace = require("gulp-replace"),
+    files2JSON = require("gulp-files-to-json");
 
 var scriptList = [];
 
@@ -50,4 +51,11 @@ gulp.task("images", function () {
         .pipe(gulp.dest("build/src/img"));
 });
 
-gulp.task("default", ["html", "scripts", "detachedScripts", "styles", "images"]);
+gulp.task("tpl", function () {
+    return gulp.src("./src/tpl/*.html")
+        .pipe(files2JSON("tpl.json"))
+        .pipe(gulp.dest("./src/tpl/"))
+        .pipe(gulp.dest("./build/src/tpl/"));
+});
+
+gulp.task("default", ["html", "scripts", "detachedScripts", "styles", "images", "tpl"]);

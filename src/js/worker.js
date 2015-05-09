@@ -14,7 +14,7 @@ worker.invoke = function (method, data) {
     // Note that every worker invocation turns the application into busy state, so be sure to
     // set the desired application state either just before the worker invocation, or after
     // the invoked worker method finishes, but not between these two events
-    app.setState(app.BUSY);
+    app.state = app.BUSY;
     calcWorker.postMessage({method: method, data: data});
 };
 
@@ -27,7 +27,7 @@ calcWorker.addEventListener("message", function (e) {
     var method = e.data && e.data.method;
     if (method) {
         if (method === blockingMethod) {
-            app.setState(app.IDLE);
+            app.state = app.IDLE;
             blockingMethod = null;
         }
         worker.trigger(method, e.data.data);

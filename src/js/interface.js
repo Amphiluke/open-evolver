@@ -5,13 +5,24 @@
 var $ = global.jQuery,
     _ = global._,
     OE = global.OE,
-    actions = OE.app.actions,
+    app = OE.app,
+    actions = app.actions,
     ui = OE.ui || (OE.ui = {}),
-    $doc = $(document);
+    $doc = $(document),
+    $body = $(document.body);
 
 
 ui.$ = function (target) {
     return (target && target.jquery) ? target : $(target);
+};
+
+ui.loadTpls = function () {
+    return $.getJSON("src/tpl/tpl.json").done(function (tpls) {
+        ui.tpls = {};
+        _.each(tpls, function (tpl, name) {
+            ui.tpls[name] = _.template(tpl);
+        });
+    });
 };
 
 
@@ -102,8 +113,6 @@ ui.save = (_.extend(Object.create(ui.abstractDialog), {
 ui.graph = (_.extend(Object.create(ui.abstractDialog), {
     $el: $(".oe-graph-form"),
 
-    tpl: _.template($("#oe-cutoffs-tpl").html()),
-
     init: function () {
         OE.structureUtils.on("updateStructure", function (pairsUpdated) {
             if (pairsUpdated) {
@@ -166,7 +175,7 @@ ui.graph = (_.extend(Object.create(ui.abstractDialog), {
 
     resetHTML: function () {
         this.$el.find(".oe-cutoffs")
-            .html(this.tpl({
+            .html(ui.tpls.cutoffs({
                 pairs: OE.structureUtils.pairList.slice(0, OE.structureUtils.pairList.length / 2)
             }))
             .find(".oe-cutoff").eq(0).addClass("active");
@@ -180,8 +189,6 @@ ui.graph = (_.extend(Object.create(ui.abstractDialog), {
 
 ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
     $el: $(".oe-potential-form"),
-
-    tpl: _.template($("#oe-potentials-tpl").html()),
 
     init: function () {
         OE.structureUtils.on("updateStructure", function (pairsUpdated) {
@@ -229,7 +236,7 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
     },
 
     resetHTML: function () {
-        this.$el.find("ul.oe-potentials").html(this.tpl({pairs: OE.structureUtils.pairList}));
+        this.$el.find("ul.oe-potentials").html(ui.tpls.potentials({pairs: OE.structureUtils.pairList}));
     },
 
     apply: function () {
@@ -288,13 +295,11 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
 ui.report = (_.extend(Object.create(ui.abstractDialog), {
     $el: $(".oe-report"),
 
-    tpl: _.template($("#oe-report-tpl").html()),
-
     handleGlobalKeyUp: $.noop, // override the inherited behavior hiding the dialog on Esc key press
 
     print: function (data) {
         this.updateProgress(100);
-        $("#oe-report-data").html(this.tpl({energy: data.energy, grad: data.norm}));
+        $("#oe-report-data").html(ui.tpls.report({energy: data.energy, grad: data.norm}));
     },
 
     updateProgress: function (value) {
@@ -365,17 +370,8 @@ ui.appearance = (_.extend(Object.create(ui.abstractDialog), {
 ui.info = (_.extend(Object.create(ui.abstractDialog), {
     $el: $(".oe-info-dialog"),
 
-    init: function () {
-        var tpls = this.tpls = {};
-        this.$el.find("script[type='text/template'][data-info]").each(function (idx, tpl) {
-            tpl = $(tpl);
-            tpls[tpl.data("info")] = _.template(tpl.html());
-        });
-        return ui.abstractDialog.init.apply(this, arguments);
-    },
-
     applyTpl: function (tpl, data) {
-        this.$el.find(".oe-info-dialog-text").html(this.tpls[tpl](data));
+        this.$el.find(".oe-info-dialog-text").html(ui.tpls[tpl](data));
     }
 })).init();
 
@@ -461,6 +457,16 @@ OE.worker.on("totalEnergy", function (data) {
 OE.worker.on("gradient", function (data) {
     ui.info.applyTpl("gradient", {grad: data});
     ui.info.show();
+});
+
+
+app.on("stateChange", function () {
+    $body.toggleClass("app-busy", (app.state === app.BUSY));
+});
+
+app.state = app.BUSY;
+ui.loadTpls().done(function () {
+    app.state = app.IDLE;
 });
 
 })(this);

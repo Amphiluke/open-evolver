@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8"/>
     <title>Open evolver</title>
     <link rel="stylesheet" href="src/css/main.css"/>
 </head>
@@ -73,13 +73,7 @@
 
 <form action="#" class="oe-dialog oe-graph-form hidden" autocomplete="off">
     <h2>Graph</h2>
-    <div class="oe-cutoffs">
-        <script type="text/template" id="oe-cutoffs-tpl">
-            <% _.each(pairs, function (pair) { %>
-                <button type="button" class="oe-cutoff" data-pair="<%- pair %>">0.0000</button>
-            <% }); %>
-        </script>
-    </div>
+    <div class="oe-cutoffs"></div>
     <p>
         <input type="range" class="oe-cutoff-slider" min="0" max="100" step="1" value="0"/>
         <label class="oe-cutoff-min">
@@ -102,24 +96,7 @@
 
 <form action="#" class="oe-dialog oe-potential-form hidden" autocomplete="off">
     <h2>Potential parameters</h2>
-    <ul class="oe-potentials">
-        <script type="text/template" id="oe-potentials-tpl">
-            <li>
-                <span>Pair</span>
-                <span><var>D<sub>0</sub></var>, eV</span>
-                <span><var>R<sub>0</sub></var>, Å</span>
-                <span><var>&omega;<sub>0</sub></var>, cm<sup>&minus;1</sup></span>
-            </li>
-            <% _.each(pairs, function (pair) { %>
-                <li class="oe-potential-row" data-pair="<%- pair %>">
-                    <label for="oe-<%- pair %>"><%- pair %></label>
-                    <label><input type="text" id="oe-<%- pair %>" data-param="D0" pattern="\d*\.?\d+([eE][+-]?\d+)?"/></label>
-                    <label><input type="text" data-param="R0" pattern="\d*\.?\d+([eE][+-]?\d+)?"/></label>
-                    <label><input type="text" data-param="w0" pattern="\d*\.?\d+([eE][+-]?\d+)?"/></label>
-                </li>
-            <% }); %>
-        </script>
-    </ul>
+    <ul class="oe-potentials"></ul>
     <p class="potential-filing">
         <label>Load parameters…<input type="file" class="load-potentials" autocomplete="off"/></label> |
         <a href="#" class="save-potentials" download="potentials.txt">Save parameters…</a>
@@ -154,15 +131,6 @@
 </form>
 
 <div class="oe-dialog oe-info-dialog hidden">
-    <script type="text/template" data-info="energy">
-        <h2>Total energy &amp; total bonds</h2>
-        <p>Total energy is <var>E</var>&nbsp;=&nbsp;<%= energy.toFixed(5) %>&nbsp;eV</p>
-        <p>Bond count is <var>B</var>&nbsp;=&nbsp;<%= bonds %></p>
-    </script>
-    <script type="text/template" data-info="gradient">
-        <h2>Norm of gradient</h2>
-        <p>Norm of gradient is ||<b>grad</b> <var>E</var>||&nbsp;=&nbsp;<%= grad.toFixed(5) %>&nbsp;eV/Å</p>
-    </script>
     <div class="oe-info-dialog-text"></div>
     <p class="oe-dialog-btns">
         <input type="button" class="oe-discard" value="Close"/>
@@ -174,14 +142,7 @@
 
 <div class="oe-report hidden">
     <p><progress id="oe-report-progress" value="0" max="100"></progress></p>
-    <dl id="oe-report-data">
-        <script type="text/template" id="oe-report-tpl">
-            <dt>Total binding energy:</dt>
-            <dd><%= energy.toFixed(5) %>&nbsp;eV</dd>
-            <dt>Norm of gradient:</dt>
-            <dd><%= grad.toFixed(5) %>&nbsp;eV/Å</dd>
-        </script>
-    </dl>
+    <dl id="oe-report-data"></dl>
 </div>
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>

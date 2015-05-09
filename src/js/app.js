@@ -2,16 +2,21 @@
 
 "use strict";
 
-var OE = global.OE,
+var _ = global._,
+    OE = global.OE,
     app = OE.app = Object.create(OE.observer),
     actions = app.actions = {},
     actionStore = {},
-    isBusy = false,
+    busyCount = 0,
+    appState,
     actionProto;
 
 
 /**
  * A set of predefined application states
+ * Important: do not add any properties into the `app` object until all the predefined states
+ * are declared. Once the states are created, their names will be kept in the `predefinedStateNames`
+ * variable
  */
 Object.defineProperties(app, {
     STARTED: {
@@ -76,36 +81,58 @@ Object.defineProperties(app, {
     }
 });
 
-app.setState = function (actionStates) {
-    var action;
-    // Returning to idle is only possible if the application is currently busy.
-    // And IDLE is the only state the busy application can fall into.
-    if (isBusy ^ (actionStates === app.IDLE)) {
-        return;
-    }
-    isBusy = (actionStates === app.BUSY);
-    if (isBusy) {
-        // Store the current action states to be able to reproduce them on returning to idle
-        for (action in app.IDLE) {
-            if (app.IDLE.hasOwnProperty(action)) {
-                app.IDLE[action] = actions[action].enabled;
+// There should be no other own properties except predefined state objects at this point!
+(function (predefinedStateNames) {
+    app._isStatePredefined = function (state) {
+        if (state === app.IDLE) { // IDLE is a special case since it can mutate
+            return false;
+        }
+        for (var i = predefinedStateNames.length - 1; i >= 0; i--) {
+            if (app[predefinedStateNames[i]] === state) {
+                return true;
             }
         }
-        document.body.classList.add("app-busy");
-    } else {
-        document.body.classList.remove("app-busy");
-    }
-    for (action in actionStates) {
-        if (actionStates.hasOwnProperty(action) && actions.hasOwnProperty(action)) {
-            // actions[action].enabled = actionStates[action];
-            // Be silent, do not set the `enabled` property directly on an action,
-            // since the setter will trigger the "stateChange" event on each action.
-            // Instead, we will trigger a single "stateChange" event after setting all the action states
-            actionStore[action].enabled = actionStates[action];
+        return false;
+    };
+})(Object.getOwnPropertyNames(app));
+
+Object.defineProperty(app, "state", {
+    configurable: false,
+    enumerable: true,
+    get: function () {
+        return (app._isStatePredefined(appState)) ? appState : _.clone(appState);
+    },
+    set: function (actionStates) {
+        var action;
+        if (actionStates === appState) {
+            if (appState === app.BUSY) {
+                busyCount++;
+            }
+            return;
         }
+        if (actionStates === app.BUSY) {
+            busyCount++;
+            // Store the current action states to be able to reproduce them on returning to idle
+            for (action in app.IDLE) {
+                if (app.IDLE.hasOwnProperty(action)) {
+                    app.IDLE[action] = actions[action].enabled;
+                }
+            }
+        } else if (actionStates === app.IDLE) {
+            // It's not possible to fall into idle if not currently busy.
+            // And if busyCount stays positive after decrementing then the app remains busy so far
+            if ((appState !== app.BUSY) || (--busyCount > 0)) {
+                return;
+            }
+        } else if (appState === app.BUSY) {
+            return; // IDLE is the only state the busy application can fall into
+        }
+        // If `actionStates` is one of the predefined state objects then assign it to appState
+        // directly (as is), else clone `actionStates`
+        appState = app._isStatePredefined(actionStates) ? actionStates : _.clone(actionStates);
+        app.trigger("stateChange");
     }
-    app.trigger("stateChange");
-};
+});
 
 /**
  * Create an application-level action
@@ -122,11 +149,15 @@ actionProto = Object.create(Object.prototype, {
         enumerable: true,
         configurable: true,
         get: function () {
-            return actionStore[this.name].enabled;
+            return app.state[this.name];
         },
         set: function (state) {
-            actionStore[this.name].enabled = state;
-            app.trigger("stateChange", this.name, state);
+            var actionStates = app.state;
+            state = !!state;
+            if (actionStates[this.name] !== state) {
+                actionStates[this.name] = state;
+                app.state = actionStates;
+            }
         }
     },
     exec: {
@@ -176,6 +207,16 @@ app.addAction("alterView", function () {
     OE.ui.appearance.show();
 });
 
-app.setState(app.STARTED);
+app.on("stateChange", function () {
+    var actionStates = app.state,
+        action;
+    for (action in actionStates) {
+        if (actionStates.hasOwnProperty(action) && actions.hasOwnProperty(action)) {
+            actionStore[action].enabled = actionStates[action];
+        }
+    }
+});
+
+app.state = app.STARTED;
 
 })(this);

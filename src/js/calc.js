@@ -300,8 +300,8 @@ core.evolve = function (stepCount, temperature, stoch) {
     if (stoch) {
         rndGrad.alloc();
     }
+    gradFn();
     for (stepNo = 0; stepNo < stepCount; stepNo++) {
-        gradFn();
         step = factor * core.rootSumSqr / core.sumSqr;
         for (i = 0; i < atomCount; i++) {
             atoms[i].x -= step * grad.x[i];
@@ -312,6 +312,7 @@ core.evolve = function (stepCount, temperature, stoch) {
             progressMsg.data = stepNo * progressFactor;
             global.postMessage(progressMsg);
         }
+        gradFn();
     }
     grad.dispose();
     if (stoch) {

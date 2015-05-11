@@ -10,12 +10,12 @@ var fs = require("fs"),
 var scriptList = [];
 
 gulp.task("getScriptList", function (cb) {
-    fs.readFile("./index.html", {encoding: "utf-8"}, function (err, data) {
+    fs.readFile("./dev/index.html", {encoding: "utf-8"}, function (err, data) {
         if (!err) {
             scriptList = data
                 .match(/<script src=".+\?concat=1"><\/script>/g)
                 .map(function (script) {
-                    return script.replace(/(?:<script src="|\?concat=1"><\/script>)/g, "");
+                    return "./dev/" + script.replace(/(?:<script src="|\?concat=1"><\/script>)/g, "");
                 });
         }
         cb(err);
@@ -23,38 +23,38 @@ gulp.task("getScriptList", function (cb) {
 });
 
 gulp.task("html", function () {
-    return gulp.src("./index.html")
+    return gulp.src("./dev/index.html")
         .pipe(replace(/(?:<script src=".+\?concat=1"><\/script>\s*)+/g, "<script src=\"src/js/main.js\"></script>"))
-        .pipe(gulp.dest("build"));
+        .pipe(gulp.dest("./build"));
 });
 
 gulp.task("scripts", ["getScriptList"], function () {
     return gulp.src(scriptList)
         .pipe(uglify())
         .pipe(concat("main.js", {newLine: "\r\n"}))
-        .pipe(gulp.dest("build/src/js"));
+        .pipe(gulp.dest("./build/src/js"));
 });
 
 gulp.task("detachedScripts", function () {
-    return gulp.src(["./src/js/fallback.js", "./src/js/calc.js", "./src/js/utils.js"])
+    return gulp.src(["./dev/src/js/fallback.js", "./dev/src/js/calc.js", "./dev/src/js/utils.js"])
         .pipe(uglify())
-        .pipe(gulp.dest("build/src/js"));
+        .pipe(gulp.dest("./build/src/js"));
 });
 
 gulp.task("styles", function () {
-    return gulp.src("./src/css/main.css")
-        .pipe(gulp.dest("build/src/css"));
+    return gulp.src("./dev/src/css/main.css")
+        .pipe(gulp.dest("./build/src/css"));
 });
 
 gulp.task("images", function () {
-    return gulp.src("./src/img/**/*")
-        .pipe(gulp.dest("build/src/img"));
+    return gulp.src("./dev/src/img/**/*")
+        .pipe(gulp.dest("./build/src/img"));
 });
 
 gulp.task("tpl", function () {
-    return gulp.src("./src/tpl/*.html")
+    return gulp.src("./dev/src/tpl/*.html")
         .pipe(files2JSON("tpl.json"))
-        .pipe(gulp.dest("./src/tpl/"))
+        .pipe(gulp.dest("./dev/src/tpl/"))
         .pipe(gulp.dest("./build/src/tpl/"));
 });
 

@@ -3,9 +3,9 @@
 "use strict";
 
 var fallback = {
-        jQuery: "vendor/jquery.min.js",
-        THREE: "vendor/three.min.js",
-        _: "vendor/underscore-min.js"
+        jQuery: "../vendor/jquery.min.js",
+        THREE: "../vendor/three.min.js",
+        _: "../vendor/underscore-min.js"
     },
     i;
 

@@ -3,10 +3,24 @@
 <head>
     <meta charset="UTF-8"/>
     <title>Structure summary</title>
+    <style>
+        html {background:linen;}
+        body {color:#333;font:15px/1.4 monospace;margin:0 auto;max-width:600px;padding:0 10px;}
+        h1 {font:bold small-caps 2.5em/1 monospace;margin-bottom:2em;text-align:center;}
+        table {border:2px solid;border-collapse:collapse;width:100%;}
+        td, th {border:1px solid;padding:2px 5px;}
+        td {text-align:right;}
+        td:first-child {text-align:left;}
+        th {background:#333;color:linen;}
+        hr {margin:2em 0;}
+        sub, sup {font-style:normal;}
+        .date {font:italic 0.8em monospace;margin-top:4em;text-align:right;}
+    </style>
 </head>
 <body>
+<h1>Summary data for<br/>“<%- data.name %>”</h1>
 <h2>Structure composition</h2>
-<p><%- atoms %><br/><%= atomCount %> atoms in total</p>
+<p><%- _.map(data.atoms, function (count, atom) {return atom + "(" + count + ")"}).join(" ") %><br/><%= data.atomCount %> atoms in total</p>
 <hr/>
 <h2>Potential parameters</h2>
 <table>
@@ -19,7 +33,7 @@
         </tr>
     </thead>
     <tbody>
-        <% _.each(potentials, function (pair, potential) { %>
+        <% _.each(data.potentials, function (potential, pair) { %>
             <tr>
                 <td><%- pair %></td>
                 <td><%= potential.D0.toFixed(5) %></td>
@@ -42,9 +56,9 @@
         </tr>
     </thead>
     <tbody>
-        <% _.each(bonds, function (bond, stats) { %>
+        <% _.each(data.bonds, function (stats, pair) { %>
             <tr>
-                <td><%- bond %></td>
+                <td><%- pair %></td>
                 <td><%= stats.count %></td>
                 <td><%= stats.avgLen.toFixed(5) %></td>
                 <td><%= stats.avgEnergy.toFixed(5) %></td>
@@ -55,13 +69,13 @@
     <tfoot>
         <tr>
             <td>Totals</td>
-            <td><%= bondCount %></td>
+            <td><%= data.bondCount %></td>
             <td>&nbsp;</td>
             <td>&nbsp;</td>
-            <td><%= totalEnergy.toFixed(5) %></td>
+            <td><%= data.totalEnergy.toFixed(5) %></td>
         </tr>
     </tfoot>
 </table>
-<p>Date &amp; time of saving: <% print((new Date()).toLocaleString()); %></p>
+<p class="date">Date &amp; time of saving: <% print((new Date()).toLocaleString()); %></p>
 </body>
 </html>

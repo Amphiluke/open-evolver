@@ -23,6 +23,7 @@ Object.defineProperties(app, {
         value: Object.freeze({
             load: true,
             save: false,
+            saveSummary: false,
             alterGraph: false,
             setup: false,
             calcEnergy: false,
@@ -35,6 +36,7 @@ Object.defineProperties(app, {
         value: Object.freeze({
             load: true,
             save: true,
+            saveSummary: false,
             alterGraph: true,
             setup: true,
             calcEnergy: false,
@@ -47,6 +49,7 @@ Object.defineProperties(app, {
         value: Object.freeze({
             load: true,
             save: true,
+            saveSummary: true,
             alterGraph: true,
             setup: true,
             calcEnergy: true,
@@ -59,6 +62,7 @@ Object.defineProperties(app, {
         value: Object.freeze({
             load: false,
             save: false,
+            saveSummary: false,
             alterGraph: false,
             setup: false,
             calcEnergy: false,
@@ -71,6 +75,7 @@ Object.defineProperties(app, {
         value: Object.seal({
             load: undefined,
             save: undefined,
+            saveSummary: undefined,
             alterGraph: undefined,
             setup: undefined,
             calcEnergy: undefined,
@@ -181,6 +186,10 @@ app.addAction("load", function (file) {
 
 app.addAction("save", function () {
     OE.ui.save.show();
+});
+
+app.addAction("saveSummary", function () {
+    OE.worker.invoke("collectStats");
 });
 
 app.addAction("alterGraph", function () {

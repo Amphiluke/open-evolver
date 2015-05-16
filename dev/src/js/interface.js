@@ -20,7 +20,7 @@ ui.loadTpls = function () {
     return $.getJSON("src/tpl/tpl.json").done(function (tpls) {
         ui.tpls = {};
         _.each(tpls, function (tpl, name) {
-            ui.tpls[name] = _.template(tpl);
+            ui.tpls[name] = _.template(tpl, {variable: "data"});
         });
     });
 };
@@ -105,6 +105,37 @@ ui.save = (_.extend(Object.create(ui.abstractDialog), {
         if (file) {
             e.target.setAttribute("download", "untitled." + type);
             e.target.href = OE.fileAPI.getBlobURL(file);
+        }
+    }
+})).init();
+
+
+ui.saveSummary = (_.extend(Object.create(ui.abstractDialog), {
+    $el: $(".oe-save-summary-form"),
+
+    data: null,
+
+    events: [
+        {type: "mousedown", filter: "a[download]", handler: "handleSave"},
+        {type: "click", filter: "a[download]", handler: "hide"}
+    ],
+
+    handleSave: function (e) {
+        var type, text;
+        if (this.data) {
+            type = e.target.getAttribute("data-type");
+            switch (type) {
+                case "text/html":
+                    text = ui.tpls.summary(this.data);
+                    break;
+                case "application/json":
+                    text = global.JSON.stringify(this.data, null, 2);
+                    break;
+                default:
+                    text = "TBD";
+                    break;
+            }
+            e.target.href = OE.fileAPI.getBlobURL(text, type);
         }
     }
 })).init();
@@ -457,6 +488,12 @@ OE.worker.on("totalEnergy", function (data) {
 OE.worker.on("gradient", function (data) {
     ui.info.applyTpl("gradient", {grad: data});
     ui.info.show();
+});
+
+OE.worker.on("collectStats", function (data) {
+    data.name = $("#oe-file")[0].files[0].name;
+    ui.saveSummary.data = data;
+    ui.saveSummary.show();
 });
 
 

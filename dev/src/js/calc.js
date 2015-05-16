@@ -88,6 +88,52 @@ api.reconnectPairs = function (data) {
     api.updateStructure();
 };
 
+api.collectStats = function () {
+    var atoms = structure.atoms,
+        bonds = structure.bonds,
+        data = {},
+        i, len,
+        prefix, pair,
+        distance;
+
+    data.atomCount = len = atoms.length;
+    data.atoms = {};
+    for (i = 0; i < len; i++) {
+        if (data.atoms.hasOwnProperty(atoms[i].el)) {
+            data.atoms[atoms[i].el]++;
+        } else {
+            data.atoms[atoms[i].el] = 1;
+        }
+    }
+
+    data.bondCount = len = bonds.length;
+    data.bonds = {};
+    for (i = 0; i < len; i++) {
+        prefix = (bonds[i].type === "x") ? "x-" : "";
+        pair = prefix + atoms[bonds[i].jAtm].el + atoms[bonds[i].iAtm].el;
+        if (!data.bonds.hasOwnProperty(pair)) {
+            pair = prefix + atoms[bonds[i].iAtm].el + atoms[bonds[i].jAtm].el;
+            if (!data.bonds.hasOwnProperty(pair)) {
+                data.bonds[pair] = {count: 0, avgLen: 0, avgEnergy: 0, totEnergy: 0};
+            }
+        }
+        distance = core.distance(bonds[i].iAtm, bonds[i].jAtm);
+        data.bonds[pair].count++;
+        data.bonds[pair].avgLen += distance;
+        data.bonds[pair].totEnergy += core.morse(bonds[i].potential, distance);
+    }
+    for (pair in data.bonds) {
+        if (data.bonds.hasOwnProperty(pair)) {
+            data.bonds[pair].avgLen /= data.bonds[pair].count;
+            data.bonds[pair].avgEnergy = data.bonds[pair].totEnergy / data.bonds[pair].count;
+        }
+    }
+
+    data.potentials = structure.potentials;
+    data.totalEnergy = core.totalEnergy();
+    return data;
+};
+
 
 global.onmessage = function (e) {
     var method = e.data && e.data.method;

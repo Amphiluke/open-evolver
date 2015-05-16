@@ -13,6 +13,8 @@
         <menu id="file-menu" type="popup">
             <menuitem label="Load structure…" data-action="load"></menuitem>
             <menuitem label="Save structure…" data-action="save"></menuitem>
+            <hr/>
+            <menuitem label="Save summary…" data-action="saveSummary"></menuitem>
         </menu>
         <input type="file" id="oe-file" autocomplete="off"/>
     </li>
@@ -67,6 +69,17 @@
     </div>
     <p class="oe-dialog-btns">
         <a href="#" class="oe-apply" download="">Save</a>
+        <input type="button" class="oe-discard" value="Cancel"/>
+    </p>
+</form>
+
+<form action="#" class="oe-dialog oe-save-summary-form hidden">
+    <h2>Save summary</h2>
+    <p>
+        <a href="#" data-type="text/html" download="summary.html">Save as HTML document…</a><br/>
+        <a href="#" data-type="application/json" download="summary.json">Save as JSON…</a>
+    </p>
+    <p class="oe-dialog-btns">
         <input type="button" class="oe-discard" value="Cancel"/>
     </p>
 </form>

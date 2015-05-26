@@ -163,10 +163,16 @@
 
 <form action="#" class="oe-dialog oe-appearance-form hidden" autocomplete="off">
     <h2>Appearance</h2>
-    <p>
+    <fieldset>
+        <legend>Model</legend>
         <label><input type="radio" name="appearance" data-appearance="graph" checked/> Graph</label><br/>
         <label><input type="radio" name="appearance" data-appearance="spheres"/> Spheres</label>
-    </p>
+    </fieldset>
+    <fieldset class="oe-appearance-colors">
+        <legend>Colors</legend>
+        <label>Element<br/><select id="oe-appearance-element"></select></label>
+        <label>Color<br/><input type="color" id="oe-appearance-color"/></label>
+    </fieldset>
     <p class="oe-dialog-btns">
         <input type="button" class="oe-apply" value="OK"/>
         <input type="button" class="oe-discard" value="Cancel"/>

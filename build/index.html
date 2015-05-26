@@ -23,6 +23,7 @@
         <menu id="edit-menu" type="popup">
             <menuitem label="Graph…" data-action="alterGraph"></menuitem>
             <menuitem label="Set parameters…" data-action="setup"></menuitem>
+            <menuitem label="Transformation of coordinates…" data-action="transform"></menuitem>
         </menu>
     </li>
     <li>
@@ -117,6 +118,35 @@
     <p class="oe-dialog-btns">
         <input type="button" class="oe-apply" value="OK"/>
         <input type="button" class="oe-discard" value="Cancel"/>
+    </p>
+</form>
+
+<form action="#" class="oe-dialog oe-transform-form hidden" autocomplete="off">
+    <h2>Transformation of coordinates</h2>
+    <fieldset class="oe-translate">
+        <legend>Translate</legend>
+        <p>Specify new coordinates of the center of mass</p>
+        <p>
+            <label><input type="text" data-axis="x"/><br/>X<sub>C</sub>, Å</label>
+            <label><input type="text" data-axis="y"/><br/>Y<sub>C</sub>, Å</label>
+            <label><input type="text" data-axis="z"/><br/>Z<sub>C</sub>, Å</label>
+            <input type="button" id="oe-translate-apply" value="&#x21A6;" title="Translate"/>
+        </p>
+    </fieldset>
+    <fieldset class="oe-rotate">
+        <legend>Rotate</legend>
+        <p>
+            <label for="oe-rotate-angle">Angle, deg</label><br/>
+            <input type="text" id="oe-rotate-angle"/>
+        </p>
+        <p>
+            <input type="button" data-axis="x" value="X"/>
+            <input type="button" data-axis="y" value="Y"/>
+            <input type="button" data-axis="z" value="Z"/>
+        </p>
+    </fieldset>
+    <p class="oe-dialog-btns">
+        <input type="button" class="oe-discard" value="Close"/>
     </p>
 </form>
 

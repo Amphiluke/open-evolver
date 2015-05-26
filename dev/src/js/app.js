@@ -26,6 +26,7 @@ Object.defineProperties(app, {
             saveSummary: false,
             alterGraph: false,
             setup: false,
+            transform: false,
             calcEnergy: false,
             calcGrad: false,
             evolve: false,
@@ -39,6 +40,7 @@ Object.defineProperties(app, {
             saveSummary: false,
             alterGraph: true,
             setup: true,
+            transform: true,
             calcEnergy: false,
             calcGrad: false,
             evolve: false,
@@ -52,6 +54,7 @@ Object.defineProperties(app, {
             saveSummary: true,
             alterGraph: true,
             setup: true,
+            transform: true,
             calcEnergy: true,
             calcGrad: true,
             evolve: true,
@@ -65,6 +68,7 @@ Object.defineProperties(app, {
             saveSummary: false,
             alterGraph: false,
             setup: false,
+            transform: false,
             calcEnergy: false,
             calcGrad: false,
             evolve: false,
@@ -78,6 +82,7 @@ Object.defineProperties(app, {
             saveSummary: undefined,
             alterGraph: undefined,
             setup: undefined,
+            transform: undefined,
             calcEnergy: undefined,
             calcGrad: undefined,
             evolve: undefined,
@@ -198,6 +203,10 @@ app.addAction("alterGraph", function () {
 
 app.addAction("setup", function () {
     OE.ui.potentials.show();
+});
+
+app.addAction("transform", function () {
+    OE.ui.transform.show();
 });
 
 app.addAction("calcEnergy", function () {

@@ -1,0 +1,57 @@
+@import (reference) "../utils";
+@import (reference) "../ui";
+
+.oe-transform-form {
+    border-color:@border-light-color;
+    border-radius:0 0 5px 0;
+    border-width:0 1px 1px 0;
+    left:600px;
+    margin-left:0;
+    top:@root-line-height + 3px * 2 + 1px; // top menu height
+    width:350px;
+    &:before {
+        content:none;
+    }
+}
+
+.oe-translate {
+    > legend:after {
+        content:"\21A6";
+    }
+    label {
+        display:inline-block;
+        vertical-align:top;
+    }
+    input[type="text"] {
+        width:75px;
+    }
+    input[type="button"] {
+        color:#c00;
+        display:inline-block;
+        font:normal 22px/20px monospace;
+        vertical-align:top;
+    }
+}
+
+.oe-rotate {
+    > legend:after {
+        content:"\21BB";
+    }
+    input[data-axis="x"] {
+        color:#a00;
+    }
+    input[data-axis="y"] {
+        color:#0a0;
+    }
+    input[data-axis="z"] {
+        color:#00a;
+    }
+}
+
+.oe-translate,
+.oe-rotate {
+    > legend:after {
+        font:normal 20px/1px monospace;
+        margin:0 5px;
+    }
+}

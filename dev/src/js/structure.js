@@ -89,6 +89,60 @@ structureUtils.setPotentials = function (potentials) {
     structureUtils.syncWorker();
 };
 
+structureUtils.getCenterOfMass = function () {
+    var utils = OE.utils,
+        atoms = OE.structure.atoms,
+        result = {x: 0, y: 0, z: 0},
+        mass = 0,
+        atomicMass,
+        i, len;
+    for (i = 0, len = atoms.length; i < len; i++) {
+        atomicMass = utils.getAtomicMass(atoms[i].el);
+        mass += atomicMass;
+        result.x += atomicMass * atoms[i].x;
+        result.y += atomicMass * atoms[i].y;
+        result.z += atomicMass * atoms[i].z;
+    }
+    result.x /= mass;
+    result.y /= mass;
+    result.z /= mass;
+    return result;
+};
+
+structureUtils.translate = function (x, y, z) {
+    var atoms = OE.structure.atoms,
+        center = structureUtils.getCenterOfMass(),
+        dx = x - center.x,
+        dy = y - center.y,
+        dz = z - center.z,
+        i, len;
+    for (i = 0, len = atoms.length; i < len; i++) {
+        atoms[i].x += dx;
+        atoms[i].y += dy;
+        atoms[i].z += dz;
+    }
+    structureUtils.overwrite(OE.structure, false, false);
+    OE.view.render();
+};
+
+structureUtils.rotate = function (angle, axis) {
+    var atoms = OE.structure.atoms,
+        axis2 = (axis === "x" ? "y" : "x"),
+        axis3 = (axis === "z" ? "y" : "z"),
+        sine = Math.sin(angle),
+        cosine = Math.cos(angle),
+        coord2, coord3,
+        i, len;
+    for (i = 0, len = atoms.length; i < len; i++) {
+        coord2 = atoms[i][axis2];
+        coord3 = atoms[i][axis3];
+        atoms[i][axis2] = coord2 * cosine + coord3 * sine;
+        atoms[i][axis3] = coord3 * cosine - coord2 * sine;
+    }
+    structureUtils.overwrite(OE.structure, false, false);
+    OE.view.render();
+};
+
 structureUtils.syncWorker = function () {
     OE.worker.invoke("setStructure", OE.structure);
 };

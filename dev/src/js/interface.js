@@ -323,6 +323,38 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
 })).init();
 
 
+ui.transform = (_.extend(Object.create(ui.abstractDialog), {
+    $el: $(".oe-transform-form"),
+
+    events: [
+        {type: "click", owner: "#oe-translate-apply", handler: "handleTranslate"},
+        {type: "click", filter: ".oe-rotate [data-axis]", handler: "handleRotate"}
+    ],
+
+    handleTranslate: function () {
+        var fieldSet = this.$el.find(".oe-translate"),
+            x = +fieldSet.find("[data-axis='x']").val(),
+            y = +fieldSet.find("[data-axis='y']").val(),
+            z = +fieldSet.find("[data-axis='z']").val();
+        OE.structureUtils.translate(x, y, z);
+    },
+
+    handleRotate: function (e) {
+        var angle = $("#oe-rotate-angle").val() * Math.PI / 180,
+            axis = e.target.getAttribute("data-axis");
+        OE.structureUtils.rotate(angle, axis);
+    },
+
+    show: function () {
+        var center = OE.structureUtils.getCenterOfMass();
+        this.$el.find(".oe-translate input[data-axis]").val(function () {
+            return center[$(this).data("axis")].toFixed(5);
+        });
+        return ui.abstractDialog.show.apply(this, arguments);
+    }
+})).init();
+
+
 ui.report = (_.extend(Object.create(ui.abstractDialog), {
     $el: $(".oe-report"),
 

@@ -79,6 +79,32 @@ ui.abstractDialog = _.extend(Object.create(ui.proto), {
 
     hide: function () {
         this.$el.addClass("hidden");
+    },
+
+    fix: function (fields) {
+        var i, len,
+            field;
+        if (!fields) {
+            fields = this.$el[0].elements; // `this.$el` should be a form, otherwise the `fix` method is useless
+        }
+        for (i = 0, len = fields.length; i < len; i++) {
+            field = fields[i];
+            // Setting the `defaultValue`/`defaultChecked`/`defaultSelected` prop allows using
+            // `form.reset()` on possible future discards (see the `reset()` method)
+            if (field.type === "checkbox" || field.type === "radio") {
+                field.defaultChecked = field.checked;
+            } else if (field.nodeName.toUpperCase() === "OPTION") {
+                field.defaultSelected = field.selected;
+            } else if ("defaultValue" in field) {
+                field.defaultValue = field.value;
+            } else if (field.options) { // selects
+                this.fix(field.options);
+            }
+        }
+    },
+
+    reset: function () {
+        this.$el[0].reset(); // `this.$el` should be a form, otherwise the `reset` method is useless
     }
 });
 
@@ -278,8 +304,6 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
             row.find("input[data-param]").each(function (idx, el) {
                 if (el.value) {
                     params[$(el).data("param")] = +el.value;
-                    // Setting the defaultValue allows using form.reset() on possible future discards
-                    el.defaultValue = el.value;
                 } else {
                     return (params = false);
                 }
@@ -289,10 +313,11 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
             }
         });
         OE.structureUtils.setPotentials(potentials);
+        this.fix();
     },
 
     discard: function () {
-        this.$el[0].reset();
+        this.reset();
     },
 
     show: function () {
@@ -393,12 +418,7 @@ ui.evolve = (_.extend(Object.create(ui.abstractDialog), {
     },
 
     apply: function () {
-        this.$el.find("input[type='text']").each(function (idx, el) {
-            el.defaultValue = el.value;
-        });
-        this.$el.find("input[type='checkbox']").each(function (idx, el) {
-            el.defaultChecked = el.checked;
-        });
+        this.fix();
         OE.worker.invoke("evolve", {
             stepCount: +$("#oe-step-count").val(),
             temperature: +$("#oe-temperature").val(),
@@ -408,7 +428,7 @@ ui.evolve = (_.extend(Object.create(ui.abstractDialog), {
     },
 
     discard: function () {
-        this.$el[0].reset();
+        this.reset();
     }
 })).init();
 
@@ -447,35 +467,30 @@ ui.appearance = (_.extend(Object.create(ui.abstractDialog), {
     },
 
     apply: function () {
-        var appearance = this.$el.find("input[name='appearance']").filter(":checked").data("appearance"),
-            tmpClrPresets = this.tmpClrPresets,
-            presets,
-            el;
-        if (appearance !== OE.view.appearance) {
-            OE.view.appearance = appearance;
-        }
-        if (tmpClrPresets) {
-            presets = OE.view.presets;
-            for (el in tmpClrPresets) {
-                if (tmpClrPresets.hasOwnProperty(el)) {
-                    presets[el].color = tmpClrPresets[el];
-                }
-            }
+        OE.view.appearance = this.$el.find("input[name='appearance']:checked").data("appearance");
+        OE.view.setBgColor($("#oe-bg-color").val());
+        if (this.tmpClrPresets) {
+            OE.view.setAtomColors(this.tmpClrPresets);
             delete this.tmpClrPresets;
         }
         OE.view.render();
+        this.fix();
     },
 
     discard: function () {
-        this.$el.find("input[data-appearance='" + OE.view.appearance + "']").prop("checked", true);
-        this.setCurrElementColor();
+        this.reset();
         delete this.tmpClrPresets;
+        this.setCurrElementColor();
     },
 
     setCurrElementColor: function () {
         var el = $("#oe-appearance-element").val(),
-            presets = OE.view.presets,
-            color = (presets[el] || presets._def).color;
+            color;
+        if (this.tmpClrPresets && (el in this.tmpClrPresets)) {
+            color = this.tmpClrPresets[el];
+        } else {
+            color = OE.view.getAtomColor(el);
+        }
         $("#oe-appearance-color").val("#" + ("000000" + color.toString(16)).slice(-6));
     }
 })).init();

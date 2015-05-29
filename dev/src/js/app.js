@@ -183,7 +183,7 @@ actionProto = Object.create(Object.prototype, {
 
 app.addAction("load", function (file) {
     if (file) {
-        OE.fileAPI.loadHIN(file, function () {
+        OE.fileAPI.load(file, function () {
             OE.ui.report.hide();
         });
     }

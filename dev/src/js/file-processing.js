@@ -49,9 +49,31 @@ formats.hin = {
     }
 };
 
-fileAPI.loadHIN = function (fileObj, cb) {
+formats.xyz = {
+    parseAtomRecord: function (atomStr) {
+        var items = atomStr.trim().split(/\s+/);
+        return {
+            el: items[0],
+            x: +items[1],
+            y: +items[2],
+            z: +items[3]
+        };
+    },
+
+    parse: function (fileStr) {
+        var atomRecords = fileStr.split(/(?:\r?\n)+/).slice(2);
+        return atomRecords && {
+            atoms: atomRecords.map(this.parseAtomRecord, this),
+            bonds: []
+        };
+    }
+};
+
+fileAPI.load = function (fileObj, cb) {
     this.readFile(fileObj, function (contents) {
-        OE.structureUtils.overwrite(formats.hin.parse(contents));
+        var type = fileObj.name.slice(-3).toLowerCase(),
+            format = formats[type] || formats.hin;
+        OE.structureUtils.overwrite(format.parse(contents));
         OE.view.render();
         if (typeof cb === "function") {
             cb(contents);
@@ -101,6 +123,18 @@ fileAPI.makeHIN = function (graphType) {
         hin += "endmol 1";
     }
     return hin;
+};
+
+fileAPI.makeXYZ = function () {
+    var atoms = OE.structure.atoms,
+        len = atoms.length,
+        xyz = len + "\nThe structure was saved in OpenEvolver",
+        i, atom;
+    for (i = 0; i < len; i++) {
+        atom = atoms[i];
+        xyz += "\n" + atom.el + " " +  atom.x.toFixed(5) + " " + atom.y.toFixed(5) + " " + atom.z.toFixed(5);
+    }
+    return xyz;
 };
 
 /**

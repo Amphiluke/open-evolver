@@ -11,41 +11,91 @@ formats.hin = {
     /* HIN file syntax defines the atom record as follows:
     atom <at#> <atom-name> <element> <type> <flags> <at-charge> <x> <y> <z> <cn> <nbor# nbor-bond>
      0     1        2          3       4       5         6       7   8   9   10         11... */
-    parseAtomRecord: function (atomStr) {
-        var items = atomStr.split(/\s+/);
-        return {
-            el: items[3],
-            x: +items[7],
-            y: +items[8],
-            z: +items[9]
-        };
-    },
-
-    parseBonds: function (atomRecords) {
-        var bonds = [],
+    parseMolecule: function (atomRecords, result) {
+        var atoms = result.atoms,
+            bonds = result.bonds,
+            inc = atoms.length, // total number of atoms added into the structure previously
+            spaceRE = /\s+/,
             len, i,
             items, cn, j;
         for (i = 0, len = atomRecords.length; i < len; i++) {
-            items = atomRecords[i].split(/\s+/);
+            items = atomRecords[i].trim().split(spaceRE);
+            atoms.push({el: items[3], x: +items[7], y: +items[8], z: +items[9]});
             for (j = 11, cn = 2 * items[10] + 11; j < cn; j += 2) {
                 if (items[j] - 1 > i) {
                     bonds.push({
-                        iAtm: i,
-                        jAtm: items[j] - 1,
+                        iAtm: i + inc,
+                        jAtm: items[j] - 1 + inc,
                         type: items[j + 1]
                     });
                 }
             }
         }
-        return bonds;
     },
 
     parse: function (fileStr) {
-        var atomRecords = fileStr.match(/^atom\s+\d+\s+.+$/gm);
-        return atomRecords && {
-            atoms: atomRecords.map(this.parseAtomRecord, this),
-            bonds: this.parseBonds(atomRecords)
-        };
+        var molRE = /\n\s*mol\s+(\d+)([\s\S]+)\n\s*endmol\s+\1/g,
+            atmRE = /^atom\s+\d+\s+.+$/gm,
+            result = {atoms: [], bonds: []},
+            mol;
+        while (mol = molRE.exec(fileStr)) {
+            this.parseMolecule(mol[2].match(atmRE), result);
+        }
+        return result;
+    }
+};
+
+formats.ml2 = formats.mol2 = {
+    /* MOL2 file syntax defines the atom record as follows:
+    atom_id atom_name x y z atom_type [subst_id [subst_name [charge [status_bit]]]]
+       0        1     2 3 4     5         6          7         8         9
+    MOL2 file syntax defines the bond record as follows:
+    bond_id origin_atom_id target_atom_id bond_type [status_bits]
+       0          1              2            3           4 */
+    parseMolecule: function (atomRecords, bondRecords, result) {
+        var atoms = result.atoms,
+            bonds = result.bonds,
+            inc = atoms.length, // total number of atoms added into the structure previously
+            spaceRE = /\s+/,
+            len, i,
+            items, dotPos;
+        for (i = 0, len = atomRecords.length; i < len; i++) {
+            items = atomRecords[i].trim().split(spaceRE);
+            dotPos = items[5].indexOf("."); // atom_type may look like "C.3"
+            atoms.push({
+                el: (dotPos > -1) ? items[5].slice(0, dotPos) : items[5],
+                x: +items[2],
+                y: +items[3],
+                z: +items[4]
+            });
+        }
+        for (i = 0, len = bondRecords.length; i < len; i++) {
+            items = bondRecords[i].trim().split(spaceRE);
+            bonds.push({
+                iAtm: items[1] - 1 + inc,
+                jAtm: items[2] - 1 + inc,
+                type: items[3]
+            });
+        }
+    },
+
+    parse: function (fileStr) {
+        var result = {atoms: [], bonds: []},
+            molChunks = fileStr.split("@<TRIPOS>MOLECULE").slice(1),
+            atomRE = /@<TRIPOS>ATOM([\s\S]+?)(?:@<TRIPOS>|$)/,
+            bondRE = /@<TRIPOS>BOND([\s\S]+?)(?:@<TRIPOS>|$)/,
+            newLineRE = /(?:\r?\n)+/,
+            i, len,
+            atomSection, atomRecords,
+            bondSection, bondRecords;
+        for (i = 0, len = molChunks.length; i < len; i++) {
+            atomSection = molChunks[i].match(atomRE);
+            atomRecords = (atomSection && atomSection[1].trim().split(newLineRE)) || [];
+            bondSection = molChunks[i].match(bondRE);
+            bondRecords = (bondSection && bondSection[1].trim().split(newLineRE)) || [];
+            this.parseMolecule(atomRecords, bondRecords, result);
+        }
+        return result;
     }
 };
 
@@ -71,7 +121,8 @@ formats.xyz = {
 
 fileAPI.load = function (fileObj, cb) {
     this.readFile(fileObj, function (contents) {
-        var type = fileObj.name.slice(-3).toLowerCase(),
+        var name = fileObj.name || "",
+            type = name.slice(name.lastIndexOf(".") + 1).toLowerCase(),
             format = formats[type] || formats.hin;
         OE.structureUtils.overwrite(format.parse(contents));
         OE.view.render();
@@ -123,6 +174,37 @@ fileAPI.makeHIN = function (graphType) {
         hin += "endmol 1";
     }
     return hin;
+};
+
+fileAPI.makeML2 = function (graphType) {
+    var atoms = OE.structure.atoms,
+        atomCount = atoms.length,
+        ml2,
+        i, len,
+        atom,
+        bondCount, bonds, bond;
+    ml2 = "# The structure was saved in OpenEvolver\n@<TRIPOS>MOLECULE\n****\n" + atomCount +
+        " %BOND_COUNT%\nSMALL\nNO_CHARGES\n\n\n@<TRIPOS>ATOM\n"; // bond count is TBD later
+    for (i = 0, len = atoms.length; i < len; i++) {
+        atom = atoms[i];
+        ml2 += (i + 1) + " " + atom.el + " " + atom.x.toFixed(4) + " " + atom.y.toFixed(4) + " " + atom.z.toFixed(4) +
+            " " + atom.el + " 1 **** 0.0000\n";
+    }
+    bondCount = 0;
+    if (graphType !== "empty") {
+        bonds = OE.structure.bonds;
+        ml2 += "@<TRIPOS>BOND\n";
+        for (i = 0, len = bonds.length; i < len; i++) {
+            bond = bonds[i];
+            if (graphType !== "basic" || bond.type !== "x") {
+                bondCount++;
+                ml2 += bondCount + " " + (bond.iAtm + 1) + " " + (bond.jAtm + 1) + " " + bond.type + "\n";
+            }
+        }
+    }
+    ml2 += "@<TRIPOS>SUBSTRUCTURE\n1 **** 0";
+    ml2 = ml2.replace("%BOND_COUNT%", bondCount.toString());
+    return ml2;
 };
 
 fileAPI.makeXYZ = function () {

@@ -574,6 +574,18 @@ ui.menu = (_.extend(Object.create(ui.proto), {
     }
 })).init();
 
+ui.misc = (_.extend(Object.create(ui.proto), {
+    events: [
+        {type: "click", owner: ".oe-acknowledgements", handler: "handleACKClick"}
+    ],
+
+    handleACKClick: function (e) {
+        if (e.target === e.delegateTarget) {
+            e.target.className += " hidden";
+        }
+    }
+})).init();
+
 
 OE.worker.on("totalEnergy", function (data) {
     ui.info.applyTpl("energy", {

@@ -1,38 +1,18 @@
 "use strict";
 
-var fs = require("fs"),
-    gulp = require("gulp"),
+var gulp = require("gulp"),
+    useref = require("gulp-useref"),
     uglify = require("gulp-uglify"),
-    concat = require("gulp-concat"),
-    replace = require("gulp-replace"),
     files2JSON = require("gulp-files-to-json");
 
-var scriptList = [];
-
-gulp.task("getScriptList", function (cb) {
-    fs.readFile("./dev/index.html", {encoding: "utf-8"}, function (err, data) {
-        if (!err) {
-            scriptList = data
-                .match(/<script src=".+\?concat=1"><\/script>/g)
-                .map(function (script) {
-                    return "./dev/" + script.replace(/(?:<script src="|\?concat=1"><\/script>)/g, "");
-                });
-        }
-        cb(err);
-    });
-});
-
 gulp.task("html", function () {
+    var assets = useref.assets();
     return gulp.src("./dev/index.html")
-        .pipe(replace(/(?:<script src=".+\?concat=1"><\/script>\s*)+/g, "<script src=\"src/js/main.js\"></script>"))
-        .pipe(gulp.dest("./build"));
-});
-
-gulp.task("scripts", ["getScriptList"], function () {
-    return gulp.src(scriptList)
+        .pipe(assets)
         .pipe(uglify())
-        .pipe(concat("main.js", {newLine: "\r\n"}))
-        .pipe(gulp.dest("./build/src/js"));
+        .pipe(assets.restore())
+        .pipe(useref())
+        .pipe(gulp.dest("./build"));
 });
 
 gulp.task("detachedScripts", function () {
@@ -58,4 +38,4 @@ gulp.task("tpl", function () {
         .pipe(gulp.dest("./build/src/tpl/"));
 });
 
-gulp.task("default", ["html", "scripts", "detachedScripts", "styles", "images", "tpl"]);
+gulp.task("default", ["html", "detachedScripts", "styles", "images", "tpl"]);

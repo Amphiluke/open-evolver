@@ -576,13 +576,41 @@ ui.menu = (_.extend(Object.create(ui.proto), {
 
 ui.misc = (_.extend(Object.create(ui.proto), {
     events: [
-        {type: "click", owner: ".oe-acknowledgements", handler: "handleACKClick"}
+        {type: "click", owner: ".oe-acknowledgements", handler: "handleACKClick"},
+
+        {type: "dragenter dragover", owner: "#oe-view", handler: "handleDragEnterOver"},
+        {type: "dragleave", owner: "#oe-view", handler: "handleDragLeave"},
+        {type: "drop", owner: "#oe-view", handler: "handleDrop"}
     ],
 
     handleACKClick: function (e) {
         if (e.target === e.delegateTarget) {
             e.target.className += " hidden";
         }
+    },
+
+    handleDragEnterOver: function (e) {
+        e.preventDefault();
+        if (e.type === "dragenter") {
+            e.currentTarget.classList.add("oe-droppable");
+        }
+    },
+
+    handleDragLeave: function (e) {
+        e.preventDefault();
+        if (e.target === e.currentTarget) { // skip event when fired by children
+            e.target.classList.remove("oe-droppable");
+        }
+    },
+
+    handleDrop: function (e) {
+        var dt = e.originalEvent.dataTransfer,
+            files = dt && dt.files;
+        if (files && files.length) {
+            e.preventDefault();
+            actions.load.exec(files[0]);
+        }
+        e.currentTarget.classList.remove("oe-droppable");
     }
 })).init();
 

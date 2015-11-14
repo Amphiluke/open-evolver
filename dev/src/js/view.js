@@ -126,7 +126,10 @@ view.setAtomColors = function (colors) {
     var presets = this.presets,
         el;
     for (el in colors) {
-        if (colors.hasOwnProperty(el) && (presets[el].color !== colors[el])) {
+        if (colors.hasOwnProperty(el) && (this.getAtomColor(el) !== colors[el])) {
+            if (!presets[el]) {
+                presets[el] = JSON.parse(JSON.stringify(presets._def));
+            }
             presets[el].color = colors[el];
             // Sphere materials (and colors) are cached. Clearing cache forces colors to update
             delete this.atomMaterials._cache[el];

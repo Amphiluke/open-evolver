@@ -399,14 +399,35 @@ ui.report = (_.extend(Object.create(ui.abstractDialog), {
 ui.evolve = (_.extend(Object.create(ui.abstractDialog), {
     $el: $(".oe-evolve-form"),
 
+    events: [
+        {type: "change", owner: "#oe-keep-log", handler: "handleKeepLogChange"}
+    ],
+
     init: function () {
         OE.worker.on("evolve", this.handleEvolveStop.bind(this));
         OE.worker.on("evolve.progress", ui.report.updateProgress.bind(ui.report));
+        OE.worker.on("evolve.log", this.handleEvolveLog.bind(this));
         return ui.abstractDialog.init.apply(this, arguments);
     },
 
     handleEvolveStop: function (data) {
         ui.report.print(data);
+    },
+
+    handleEvolveLog: function (data) {
+        var E = data.E,
+            grad = data.grad,
+            dt = data.dt,
+            t = 0,
+            log, i, len;
+        log = "t, ps\tE, eV\t||grad E||, eV/Å\tdt, fs\n";
+        for (i = 0, len = E.length; i < len; i++) {
+            log += t.toExponential(4) + "\t" + E[i].toExponential(4) + "\t" +
+                grad[i].toExponential(4) + "\t" + (dt[i] * 1E15).toExponential(4) + "\n";
+            t += dt[i] * 1E12;
+        }
+        ui.info.applyTpl("save-log", {url: OE.fileAPI.getBlobURL(log)});
+        ui.info.show();
     },
 
     handleApply: function () {
@@ -417,12 +438,17 @@ ui.evolve = (_.extend(Object.create(ui.abstractDialog), {
         }
     },
 
+    handleKeepLogChange: function (e) {
+        $("#oe-log-interval").prop("disabled", !e.target.checked).val("0");
+    },
+
     apply: function () {
         this.fix();
         OE.worker.invoke("evolve", {
             stepCount: +$("#oe-step-count").val(),
             temperature: +$("#oe-temperature").val(),
-            stoch: $("#oe-stoch").prop("checked")
+            stoch: $("#oe-stoch").prop("checked"),
+            logInterval: +$("#oe-log-interval").val()
         });
         ui.report.show();
     },

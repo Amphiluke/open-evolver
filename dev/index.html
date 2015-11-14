@@ -64,9 +64,9 @@
         </select>
     </p>
     <div>
-        <p class="type-description" data-type="hin-basic">Save in HyperChem file format (*.hin) skipping extra-bonds (they will be lost).</p>
-        <p class="type-description hidden" data-type="hin-extra">Save in HyperChem file format (*.hin) and include extra-bonds. Such files could be reopened later in OpenEvolver, but they are not compatible with HyperChem as it doesn't recognize bonds of x-type (extra-bonds).</p>
-        <p class="type-description hidden" data-type="hin-empty">Save in HyperChem file format (*.hin) with empty graph (separate atoms).</p>
+        <p class="oe-description" data-type="hin-basic">Save in HyperChem file format (*.hin) skipping extra-bonds (they will be lost).</p>
+        <p class="oe-description hidden" data-type="hin-extra">Save in HyperChem file format (*.hin) and include extra-bonds. Such files could be reopened later in OpenEvolver, but they are not compatible with HyperChem as it doesn't recognize bonds of x-type (extra-bonds).</p>
+        <p class="oe-description hidden" data-type="hin-empty">Save in HyperChem file format (*.hin) with empty graph (separate atoms).</p>
     </div>
     <p class="oe-dialog-btns">
         <a href="#" class="oe-apply" download="">Save</a>
@@ -152,9 +152,23 @@
 
 <form action="#" class="oe-dialog oe-evolve-form hidden" autocomplete="off">
     <h2>Evolution configuration</h2>
-    <p><label>Step count<br/><input type="number" value="100" id="oe-step-count"/></label></p>
-    <p><label>Temperature, K<br/><input type="text" value="298" pattern="\d*\.?\d+([eE][+-]?\d+)?" id="oe-temperature"/></label></p>
-    <p><label><input type="checkbox" id="oe-stoch" checked/> Stochastization</label></p>
+    <div class="oe-evolve-params">
+        <fieldset>
+            <p><label>Step count<br/><input type="number" value="100" id="oe-step-count"/></label></p>
+            <p><label>Temperature, K<br/><input type="text" value="298" pattern="\d*\.?\d+([eE][+-]?\d+)?" id="oe-temperature"/></label></p>
+            <p><label><input type="checkbox" id="oe-stoch" checked/> Stochastization</label></p>
+        </fieldset>
+        <fieldset>
+            <p>
+                <label><input type="checkbox" id="oe-keep-log"/> Keep log</label><br/>
+                <label>Log interval<br/><input type="number" value="0" id="oe-log-interval" min="0" disabled/></label>
+            </p>
+            <p class="oe-description">
+                <b>E.g.:</b> set <kbd>5</kbd> to write log at every 5th step<br/>
+                <small><em>Be aware of possible performance degradation when using a short log interval for large structures and/or large step count</em></small>
+            </p>
+        </fieldset>
+    </div>
     <p class="oe-dialog-btns">
         <input type="button" class="oe-apply" value="OK"/>
         <input type="button" class="oe-discard" value="Cancel"/>

@@ -7,7 +7,8 @@ var api = {},
     structure = null,
     tightBondCount = 0,
     grad = {},
-    rndGrad = {};
+    rndGrad = {},
+    log = {};
 
 
 global.importScripts("utils.js"); // will add `OE.utils` into the global context of the worker
@@ -46,7 +47,8 @@ api.gradient = function () {
 };
 
 api.evolve = function (data) {
-    core.evolve(data.stepCount, data.temperature, data.stoch);
+    core.evolveParams = data;
+    core.evolve();
     api.updateStructure();
     return {energy: core.totalEnergy(), norm: core.norm};
 };
@@ -154,6 +156,24 @@ grad.alloc = rndGrad.alloc = function () {
 };
 grad.dispose = rndGrad.dispose = function () {
     this.x = this.y = this.z = null;
+};
+
+
+log.alloc = function (size) {
+    this.data = {
+        E: new Float32Array(size),
+        grad: new Float32Array(size),
+        dt: new Float32Array(size)
+    };
+};
+log.dispose = function () {
+    this.data = null;
+};
+log.write = function (index) {
+    var data = this.data;
+    data.E[index] = core.totalEnergy();
+    data.grad[index] = core.norm;
+    data.dt[index] = core.timeStep();
 };
 
 
@@ -333,21 +353,69 @@ core.stochGradient = function () {
     return core.norm;
 };
 
-core.evolve = function (stepCount, temperature, stoch) {
-    var gradFn = stoch ? core.stochGradient.bind(core) : core.gradient.bind(core),
+core.timeStep = function () {
+    // dt=sqrt(3NkT/sumSqr); [sumSqr]=eV^2/(angst^2*amu)
+    return 1.636886e-16 * Math.sqrt(structure.atoms.length * core.evolveParams.temperature / core.sumSqr);
+};
+
+core.tuneEvolver = function () {
+    var params = core.evolveParams,
+        logInterval = params.logInterval,
+        functor = {},
+        initFns = [], // functions to be called before the evolution procedure
+        stepFns = [], // functions to be called at every evolution step
+        finFns = []; // functions to be called after the evolution procedure is finished
+    initFns.push(grad.alloc.bind(grad));
+    stepFns.push(params.stoch ? core.stochGradient.bind(core) : core.gradient.bind(core));
+    finFns.push(grad.dispose.bind(grad));
+    if (params.stoch) {
+        initFns.push(rndGrad.alloc.bind(rndGrad));
+        finFns.push(rndGrad.dispose.bind(rndGrad));
+    }
+    if (logInterval) {
+        initFns.push(log.alloc.bind(log, Math.floor(params.stepCount / logInterval)));
+        stepFns.push(function (stepNo) {
+            if (stepNo % logInterval === 0) {
+                log.write(stepNo / logInterval);
+            }
+        });
+        finFns.push(function () {
+            global.postMessage({method: "evolve.log", data: log.data});
+            log.dispose();
+        });
+    }
+    functor.initialize = function () {
+        initFns.forEach(function (fn) {
+            fn();
+        });
+    };
+    functor.step = function (stepNo) {
+        // Prefer the `for` loop over `stepFns.forEach` for performance reasons
+        for (var i = 0, len = stepFns.length; i < len; i++) {
+            stepFns[i](stepNo);
+        }
+    };
+    functor.finalize = function () {
+        finFns.forEach(function (fn) {
+            fn();
+        });
+    };
+    return functor;
+};
+
+core.evolve = function () {
+    var params = core.evolveParams,
+        functor = core.tuneEvolver(),
         atoms = structure.atoms,
         atomCount = atoms.length,
-        factor = 1.2926E-4 * atomCount * temperature, // 1.5NkT [eV]
-        interval = Math.ceil(stepCount / 100),
-        progressFactor = 100 / stepCount,
+        factor = 1.2926E-4 * atomCount * params.temperature, // 1.5NkT [eV]
+        interval = Math.ceil(params.stepCount / 100),
+        progressFactor = 100 / params.stepCount,
         progressMsg = {method: "evolve.progress"},
-        stepNo, step, i;
-    grad.alloc();
-    if (stoch) {
-        rndGrad.alloc();
-    }
-    gradFn();
-    for (stepNo = 0; stepNo < stepCount; stepNo++) {
+        stepNo, stepCount, step, i;
+    functor.initialize();
+    functor.step(); // pre-calculate current value of gradient before the 1st step
+    for (stepNo = 0, stepCount = params.stepCount; stepNo < stepCount; stepNo++) {
         step = factor * core.rootSumSqr / core.sumSqr;
         for (i = 0; i < atomCount; i++) {
             atoms[i].x -= step * grad.x[i];
@@ -358,12 +426,9 @@ core.evolve = function (stepCount, temperature, stoch) {
             progressMsg.data = stepNo * progressFactor;
             global.postMessage(progressMsg);
         }
-        gradFn();
+        functor.step(stepNo);
     }
-    grad.dispose();
-    if (stoch) {
-        rndGrad.dispose();
-    }
+    functor.finalize();
 };
 
 })(this);

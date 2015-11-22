@@ -75,24 +75,27 @@ function writeImgDoc(src) {
 }
 
 document.body.addEventListener("click", function (e) {
-    var target = e.target,
-        href, doc;
-    if ((target.nodeName.toLowerCase() === "a") && target.hasAttribute("download")) {
-        href = target.getAttribute("href");
-        if ((href.indexOf("blob:") === 0) && blobStore.hasOwnProperty(href)) {
-            doc = (blobStore[href] === "\x00") ? writeImgDoc(href) : writeTxtDoc(blobStore[href]);
-        } else if (href.indexOf("data:text/") === 0) {
-            doc = writeTxtDoc(atob(href.replace(/^data:text\/\w+;base64,/, "")));
-        } else if (href.indexOf("data:image/") === 0) {
-            doc = writeImgDoc(href);
-        } else {
-            return;
+    // Defer for the case with `href` or `download` attribute changing on click
+    setTimeout(function () {
+        var target = e.target,
+            href, doc;
+        if ((target.nodeName.toLowerCase() === "a") && target.hasAttribute("download")) {
+            href = target.getAttribute("href");
+            if ((href.indexOf("blob:") === 0) && blobStore.hasOwnProperty(href)) {
+                doc = (blobStore[href] === "\x00") ? writeImgDoc(href) : writeTxtDoc(blobStore[href]);
+            } else if (href.indexOf("data:text/") === 0) {
+                doc = writeTxtDoc(atob(href.replace(/^data:text\/\w+;base64,/, "")));
+            } else if (href.indexOf("data:image/") === 0) {
+                doc = writeImgDoc(href);
+            } else {
+                return;
+            }
+            setTimeout(function () {
+                doc.execCommand("SaveAs", true, target.getAttribute("download"));
+            }, 0);
+            e.preventDefault();
         }
-        setTimeout(function () {
-            doc.execCommand("SaveAs", true, target.getAttribute("download"));
-        }, 0);
-        e.preventDefault();
-    }
+    }, 0);
 }, false);
 
 })(this);

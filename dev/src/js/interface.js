@@ -114,7 +114,7 @@ ui.save = (_.extend(Object.create(ui.abstractDialog), {
 
     events: [
         {type: "change", owner: "#oe-file-type", handler: "handleTypeChange"},
-        {type: "mousedown", filter: ".oe-apply", handler: "handleSave"}
+        {type: "click", filter: ".oe-apply", handler: "handleSave"}
     ],
 
     handleTypeChange: function (e) {
@@ -142,8 +142,7 @@ ui.saveSummary = (_.extend(Object.create(ui.abstractDialog), {
     data: null,
 
     events: [
-        {type: "mousedown", filter: "a[download]", handler: "handleSave"},
-        {type: "click", filter: "a[download]", handler: "hide"}
+        {type: "click", filter: "a[download]", handler: "handleSave"}
     ],
 
     handleSave: function (e) {
@@ -162,6 +161,7 @@ ui.saveSummary = (_.extend(Object.create(ui.abstractDialog), {
                     break;
             }
             e.target.href = OE.fileAPI.getBlobURL(text, type);
+            this.hide();
         }
     }
 })).init();
@@ -258,7 +258,7 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
 
     events: [
         {type: "change", filter: ".load-potentials", handler: "handleLoad"},
-        {type: "mousedown", filter: ".save-potentials", handler: "handleSave"}
+        {type: "click", filter: ".save-potentials", handler: "handleSave"}
     ],
 
     handleLoad: function (e) {
@@ -280,7 +280,7 @@ ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
                 return row.data("pair") + "\t" + row.find("input").map(function () {
                     return this.value;
                 }).get().join("\t");
-            }).get().join("\r\n");
+            }).get().join("\n");
         e.target.href = OE.fileAPI.getBlobURL(text);
     },
 
@@ -406,28 +406,11 @@ ui.evolve = (_.extend(Object.create(ui.abstractDialog), {
     init: function () {
         OE.worker.on("evolve", this.handleEvolveStop.bind(this));
         OE.worker.on("evolve.progress", ui.report.updateProgress.bind(ui.report));
-        OE.worker.on("evolve.log", this.handleEvolveLog.bind(this));
         return ui.abstractDialog.init.apply(this, arguments);
     },
 
     handleEvolveStop: function (data) {
         ui.report.print(data);
-    },
-
-    handleEvolveLog: function (data) {
-        var E = data.E,
-            grad = data.grad,
-            dt = data.dt,
-            t = 0,
-            log, i, len;
-        log = "t, ps\tE, eV\t||grad E||, eV/Å\tdt, fs\n";
-        for (i = 0, len = E.length; i < len; i++) {
-            log += t.toExponential(4) + "\t" + E[i].toExponential(4) + "\t" +
-                grad[i].toExponential(4) + "\t" + (dt[i] * 1E15).toExponential(4) + "\n";
-            t += dt[i] * 1E12;
-        }
-        ui.info.applyTpl("save-log", {url: OE.fileAPI.getBlobURL(log)});
-        ui.info.show();
     },
 
     handleApply: function () {
@@ -455,6 +438,44 @@ ui.evolve = (_.extend(Object.create(ui.abstractDialog), {
 
     discard: function () {
         this.reset();
+    }
+})).init();
+
+
+ui.saveLog = (_.extend(Object.create(ui.abstractDialog), {
+    $el: $(".oe-save-log-dialog"),
+
+    init: function () {
+        OE.worker.on("evolve.log", this.handleEvolveLog.bind(this));
+        return ui.abstractDialog.init.apply(this, arguments);
+    },
+
+    events: [
+        {type: "click", filter: "a[download]", handler: "handleSave"}
+    ],
+
+    handleEvolveLog: function (data) {
+        this.data = data;
+        this.show();
+    },
+
+    handleSave: function (e) {
+        var data = this.data,
+            E = data.E,
+            grad = data.grad,
+            dt = data.dt,
+            t = 0,
+            dl = e.target.getAttribute("data-delimiter"),
+            log, i, len;
+        log = "t, ps" + dl + "E, eV" + dl + "||grad E||, eV/Å" + dl + "dt, fs";
+        for (i = 0, len = E.length; i < len; i++) {
+            log += "\n" + t.toExponential(4) + dl + E[i].toExponential(4) + dl +
+                grad[i].toExponential(4) + dl + (dt[i] * 1E15).toExponential(4);
+            t += dt[i] * 1E12;
+        }
+        e.target.href = OE.fileAPI.getBlobURL(log);
+        this.hide();
+        this.data = null;
     }
 })).init();
 

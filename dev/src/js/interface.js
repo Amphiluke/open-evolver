@@ -621,13 +621,23 @@ ui.menu = (_.extend(Object.create(ui.proto), {
     }
 })).init();
 
-ui.misc = (_.extend(Object.create(ui.proto), {
+ui.view = (_.extend(Object.create(ui.proto), {
+    $el: $("#oe-view"),
+
+    rotData: {
+        currentX: 0,
+        startX: 0,
+        startRot: 0,
+        center: $("#oe-view canvas").width >> 1
+    },
+
     events: [
         {type: "click", owner: ".oe-acknowledgements", handler: "handleACKClick"},
-
-        {type: "dragenter dragover", owner: "#oe-view", handler: "handleDragEnterOver"},
-        {type: "dragleave", owner: "#oe-view", handler: "handleDragLeave"},
-        {type: "drop", owner: "#oe-view", handler: "handleDrop"}
+        {type: "dragenter dragover", handler: "handleDragEnterOver"},
+        {type: "dragleave", handler: "handleDragLeave"},
+        {type: "drop", handler: "handleDrop"},
+        {type: "wheel", handler: "handleWheelZoom"},
+        {type: "mousedown", handler: "handleStartRotate"}
     ],
 
     handleACKClick: function (e) {
@@ -658,6 +668,34 @@ ui.misc = (_.extend(Object.create(ui.proto), {
             actions.load.exec(files[0]);
         }
         e.currentTarget.classList.remove("oe-droppable");
+    },
+
+    handleWheelZoom: function (e) {
+        OE.view.zoom((e.originalEvent.deltaY) < 0 ? 5 : -5);
+        e.preventDefault();
+    },
+
+    handleStartRotate: function (e) {
+        var rotData = this.rotData,
+            view = OE.view;
+        rotData.startX = e.pageX - rotData.center;
+        rotData.startRot = view.rotation;
+        this.$el
+            .on("mouseup.oeViewRotation mouseleave.oeViewRotation", this.handleStopRotate.bind(this))
+            .on("mousemove.oeViewRotation", this.handleRotate.bind(this));
+        view.autoUpdate = true;
+        view.update();
+    },
+
+    handleStopRotate: function () {
+        OE.view.autoUpdate = false;
+        this.$el.off(".oeViewRotation");
+    },
+
+    handleRotate: function (e) {
+        var rotData = this.rotData;
+        rotData.currentX = e.pageX - rotData.center;
+        OE.view.rotation = rotData.startRot + (rotData.currentX - rotData.startX) * 0.02;
     }
 })).init();
 

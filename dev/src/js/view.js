@@ -9,12 +9,6 @@ var THREE = global.THREE,
         el: null,
         width: 600,
         height: 500
-    },
-    rotData = {
-        currentX: 0,
-        startX: 0,
-        currentRot: 0,
-        startRot: 0
     };
 
 
@@ -37,7 +31,7 @@ Object.defineProperty(view.presets, "_def", {
     configurable: true,
     enumerable: false,
     writable: false,
-    value: view.presets.H
+    value: Object.freeze(JSON.parse(JSON.stringify(view.presets.H)))
 });
 
 view.atomMaterials = {
@@ -104,14 +98,23 @@ view.THREE = (function () {
     return three;
 })();
 
+view.zoom = function (delta) {
+    var three = view.THREE;
+    three.camera.position.z += delta;
+    three.camera.lookAt(three.scene.position);
+    view.update();
+};
+
 view.render = function () {
     view.resetScene();
     view.update();
 };
 
+view.rotation = 0;
+
 view.update = function () {
     var group = view.THREE.group;
-    group.rotation.y += (rotData.currentRot - group.rotation.y) * 0.05;
+    group.rotation.y += (view.rotation - group.rotation.y) * 0.05;
     view.THREE.renderer.render(view.THREE.scene, view.THREE.camera);
     if (view.autoUpdate) {
         requestAnimationFrame(view.update);
@@ -207,32 +210,5 @@ view.addSceneBonds = function () {
         }
     }
 };
-
-
-view.events = {};
-
-view.events.mouseDown = (function (e) {
-    rotData.startX = e.pageX - (canvas.width >> 1);
-    rotData.startRot = rotData.currentRot;
-    canvas.el.addEventListener("mouseup", this.mouseUp, false);
-    canvas.el.addEventListener("mouseout", this.mouseOut, false);
-    canvas.el.addEventListener("mousemove", this.mouseMove, false);
-    view.autoUpdate = true;
-    view.update();
-}).bind(view.events);
-
-view.events.mouseUp = view.events.mouseOut = (function () {
-    view.autoUpdate = false;
-    canvas.el.removeEventListener("mouseup", this.mouseUp, false);
-    canvas.el.removeEventListener("mouseout", this.mouseOut, false);
-    canvas.el.removeEventListener("mousemove", this.mouseMove, false);
-}).bind(view.events);
-
-view.events.mouseMove = (function (e) {
-    rotData.currentX = e.pageX - (canvas.width >> 1);
-    rotData.currentRot = rotData.startRot + (rotData.currentX - rotData.startX) * 0.02;
-}).bind(view.events);
-
-canvas.el.addEventListener("mousedown", view.events.mouseDown, false);
 
 })(this);

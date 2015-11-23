@@ -625,10 +625,8 @@ ui.view = (_.extend(Object.create(ui.proto), {
     $el: $("#oe-view"),
 
     rotData: {
-        currentX: 0,
         startX: 0,
-        startRot: 0,
-        center: $("#oe-view canvas").width >> 1
+        startRot: 0
     },
 
     events: [
@@ -678,7 +676,7 @@ ui.view = (_.extend(Object.create(ui.proto), {
     handleStartRotate: function (e) {
         var rotData = this.rotData,
             view = OE.view;
-        rotData.startX = e.pageX - rotData.center;
+        rotData.startX = e.pageX;
         rotData.startRot = view.rotation;
         this.$el
             .on("mouseup.oeViewRotation mouseleave.oeViewRotation", this.handleStopRotate.bind(this))
@@ -694,8 +692,7 @@ ui.view = (_.extend(Object.create(ui.proto), {
 
     handleRotate: function (e) {
         var rotData = this.rotData;
-        rotData.currentX = e.pageX - rotData.center;
-        OE.view.rotation = rotData.startRot + (rotData.currentX - rotData.startX) * 0.02;
+        OE.view.rotation = rotData.startRot + (e.pageX - rotData.startX) * 0.02;
     }
 })).init();
 

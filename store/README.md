@@ -3,6 +3,7 @@ The `store` directory is used to collect files quickly accessible from a “Stor
 Note that the contents of the `store` directory is not under the version control (see [.gitignore](https://github.com/Amphiluke/open-evolver/blob/master/.gitignore#L28)) since it's unrelated to the project codebase.
 
 To make the store work after copying the sources to the production
+
 1. fill this directory in (add any number of nanostructure files and/or make symlinks to another file storage);
 2. create a configuration JSON file `info.json` and place it directly to the `store` directory.
 

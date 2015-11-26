@@ -121,7 +121,7 @@ formats.xyz = {
 
 fileAPI.load = function (fileObj, cb) {
     this.readFile(fileObj, function (contents) {
-        var name = fileObj.name || "",
+        var name = fileObj.name || String(fileObj),
             type = name.slice(name.lastIndexOf(".") + 1).toLowerCase(),
             format = formats[type] || formats.hin;
         OE.structureUtils.overwrite(format.parse(contents));

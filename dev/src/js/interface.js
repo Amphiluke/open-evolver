@@ -109,6 +109,51 @@ ui.abstractDialog = _.extend(Object.create(ui.proto), {
 });
 
 
+ui.store = (_.extend(Object.create(ui.abstractDialog), {
+    $el: $(".oe-store-form"),
+
+    events: [
+        {type: "click", owner: ".oe-store-list", filter: "li[data-path]", handler: "handleSelect"},
+        {type: "dblclick", owner: ".oe-store-list", filter: "li[data-path]", handler: "handleApply"}
+    ],
+
+    handleSelect: function (e) {
+        $(e.delegateTarget).children(".active").removeClass("active");
+        $(e.currentTarget).addClass("active");
+    },
+
+    show: function () {
+        var $list;
+        if (!this.loaded) {
+            $list = this.$el.find(".oe-store-list");
+            $list.addClass(".oe-store-list-loading");
+            $.getJSON("../store/info.json")
+                .done(this.resetHTML.bind(this))
+                .fail(this.resetHTML.bind(this, undefined))
+                .always(function () {
+                    $list.removeClass(".oe-store-list-loading");
+                });
+            this.loaded = true;
+        }
+        return ui.abstractDialog.show.apply(this, arguments);
+    },
+
+    apply: function () {
+        var path = this.$el.find(".active[data-path]").data("path");
+        if (path) {
+            actions.load.exec("../store/" + path);
+        }
+    },
+
+    resetHTML: function (data) {
+        var hasData = data && data.length,
+            html = hasData ? ui.tpls.store({records: data}) : "<li>Data is empty or couldn't be loaded</li>";
+        this.$el.find(".oe-store-list").html(html);
+        this.$el.find(".oe-apply").prop("disabled", !hasData);
+    }
+})).init();
+
+
 ui.save = (_.extend(Object.create(ui.abstractDialog), {
     $el: $(".oe-save-form"),
 

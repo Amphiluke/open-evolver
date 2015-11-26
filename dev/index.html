@@ -13,6 +13,7 @@
         <button type="menu" value="File" menu="file-menu"></button>
         <menu id="file-menu" type="popup">
             <menuitem label="Load structure…" data-action="load"></menuitem>
+            <menuitem label="Open store…" data-action="openStore"></menuitem>
             <menuitem label="Save structure…" data-action="save"></menuitem>
             <hr/>
             <menuitem label="Save summary…" data-action="saveSummary"></menuitem>
@@ -44,6 +45,15 @@
     </li>
 </menu>
 
+<form action="#" class="oe-dialog oe-store-form hidden">
+    <h2>Store</h2>
+    <ul class="oe-store-list"></ul>
+    <fieldset class="oe-dialog-btns">
+        <input type="button" class="oe-apply" value="Load"/>
+        <input type="button" class="oe-discard" value="Cancel"/>
+    </fieldset>
+</form>
+
 <form action="#" class="oe-dialog oe-save-form hidden">
     <h2>Save structure</h2>
     <p>
@@ -69,10 +79,10 @@
         <p class="oe-description hidden" data-type="hin-extra">Save in HyperChem file format (*.hin) and include extra-bonds. Such files could be reopened later in OpenEvolver, but they are not compatible with HyperChem as it doesn't recognize bonds of x-type (extra-bonds).</p>
         <p class="oe-description hidden" data-type="hin-empty">Save in HyperChem file format (*.hin) with empty graph (separate atoms).</p>
     </div>
-    <p class="oe-dialog-btns">
+    <fieldset class="oe-dialog-btns">
         <a href="#" class="oe-apply" download="">Save</a>
         <input type="button" class="oe-discard" value="Cancel"/>
-    </p>
+    </fieldset>
 </form>
 
 <form action="#" class="oe-dialog oe-save-summary-form hidden">
@@ -81,15 +91,15 @@
         <a href="#" data-type="text/html" download="summary.html">Save as HTML document…</a><br/>
         <a href="#" data-type="application/json" download="summary.json">Save as JSON…</a>
     </p>
-    <p class="oe-dialog-btns">
+    <fieldset class="oe-dialog-btns">
         <input type="button" class="oe-discard" value="Cancel"/>
-    </p>
+    </fieldset>
 </form>
 
 <form action="#" class="oe-dialog oe-graph-form hidden" autocomplete="off">
     <h2>Graph</h2>
-    <div class="oe-cutoffs"></div>
-    <p>
+    <fieldset class="oe-cutoffs"></fieldset>
+    <fieldset>
         <input type="range" class="oe-cutoff-slider" min="0" max="100" step="1" value="0"/>
         <label class="oe-cutoff-min">
             <input type="text" id="oe-cutoff-min" pattern="\d*\.?\d+([eE][+-]?\d+)?" value="0"/>
@@ -103,10 +113,10 @@
             <input type="text" id="oe-cutoff-exact" pattern="\d*\.?\d+([eE][+-]?\d+)?" value="0.0000"/>
             Cutoff, Å
         </label>
-    </p>
-    <p class="oe-dialog-btns">
+    </fieldset>
+    <fieldset class="oe-dialog-btns">
         <input type="button" class="oe-apply" value="OK"/>
-    </p>
+    </fieldset>
 </form>
 
 <form action="#" class="oe-dialog oe-potential-form hidden" autocomplete="off">
@@ -116,10 +126,10 @@
         <label>Load parameters…<input type="file" class="load-potentials" autocomplete="off"/></label> |
         <a href="#" class="save-potentials" download="potentials.txt">Save parameters…</a>
     </p>
-    <p class="oe-dialog-btns">
+    <fieldset class="oe-dialog-btns">
         <input type="button" class="oe-apply" value="OK"/>
         <input type="button" class="oe-discard" value="Cancel"/>
-    </p>
+    </fieldset>
 </form>
 
 <form action="#" class="oe-dialog oe-transform-form hidden" autocomplete="off">
@@ -146,9 +156,9 @@
             <input type="button" data-axis="z" value="Z"/>
         </p>
     </fieldset>
-    <p class="oe-dialog-btns">
+    <fieldset class="oe-dialog-btns">
         <input type="button" class="oe-discard" value="Close"/>
-    </p>
+    </fieldset>
 </form>
 
 <form action="#" class="oe-dialog oe-evolve-form hidden" autocomplete="off">
@@ -170,10 +180,10 @@
             </p>
         </fieldset>
     </div>
-    <p class="oe-dialog-btns">
+    <fieldset class="oe-dialog-btns">
         <input type="button" class="oe-apply" value="OK"/>
         <input type="button" class="oe-discard" value="Cancel"/>
-    </p>
+    </fieldset>
 </form>
 
 <form action="#" class="oe-dialog oe-appearance-form hidden" autocomplete="off">
@@ -190,10 +200,10 @@
         <hr/>
         <label>Background <input type="color" id="oe-bg-color"/></label>
     </fieldset>
-    <p class="oe-dialog-btns">
+    <fieldset class="oe-dialog-btns">
         <input type="button" class="oe-apply" value="OK"/>
         <input type="button" class="oe-discard" value="Cancel"/>
-    </p>
+    </fieldset>
 </form>
 
 <div class="oe-dialog oe-save-log-dialog hidden">

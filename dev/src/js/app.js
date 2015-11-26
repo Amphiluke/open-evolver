@@ -21,6 +21,7 @@ var _ = global._,
 Object.defineProperties(app, {
     STARTED: {
         value: Object.freeze({
+            openStore: true,
             load: true,
             save: false,
             saveSummary: false,
@@ -35,6 +36,7 @@ Object.defineProperties(app, {
     },
     STRUCTURE_LOADED: {
         value: Object.freeze({
+            openStore: true,
             load: true,
             save: true,
             saveSummary: false,
@@ -49,6 +51,7 @@ Object.defineProperties(app, {
     },
     PARAMS_SET: {
         value: Object.freeze({
+            openStore: true,
             load: true,
             save: true,
             saveSummary: true,
@@ -63,6 +66,7 @@ Object.defineProperties(app, {
     },
     BUSY: {
         value: Object.freeze({
+            openStore: false,
             load: false,
             save: false,
             saveSummary: false,
@@ -77,6 +81,7 @@ Object.defineProperties(app, {
     },
     IDLE: {
         value: Object.seal({
+            openStore: undefined,
             load: undefined,
             save: undefined,
             saveSummary: undefined,
@@ -179,6 +184,10 @@ actionProto = Object.create(Object.prototype, {
             }
         }
     }
+});
+
+app.addAction("openStore", function () {
+    OE.ui.store.show();
 });
 
 app.addAction("load", function (file) {

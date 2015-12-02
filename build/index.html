@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Open evolver</title>
+    <link rel="icon" type="image/png" href="../favicon.png"/>
+    <link rel="stylesheet" href="src/css/main.css"/>
+</head>
+<body>
+
+<menu type="toolbar" class="oe-menu">
+    <li>
+        <button type="menu" value="File" menu="file-menu"></button>
+        <menu id="file-menu" type="popup">
+            <menuitem label="Load structure…" data-action="load"></menuitem>
+            <menuitem label="Open store…" data-action="openStore"></menuitem>
+            <menuitem label="Save structure…" data-action="save"></menuitem>
+            <hr/>
+            <menuitem label="Save summary…" data-action="saveSummary"></menuitem>
+        </menu>
+        <input type="file" id="oe-file" autocomplete="off"/>
+    </li>
+    <li>
+        <button type="menu" value="Edit" menu="edit-menu"></button>
+        <menu id="edit-menu" type="popup">
+            <menuitem label="Graph…" data-action="alterGraph"></menuitem>
+            <menuitem label="Set parameters…" data-action="setup"></menuitem>
+            <menuitem label="Transformation of coordinates…" data-action="transform"></menuitem>
+        </menu>
+    </li>
+    <li>
+        <button type="menu" value="Calc" menu="calc-menu"></button>
+        <menu id="calc-menu" type="popup">
+            <menuitem label="Total energy &amp; total bonds" data-action="calcEnergy"></menuitem>
+            <menuitem label="Norm of gradient" data-action="calcGrad"></menuitem>
+            <hr/>
+            <menuitem label="Evolve…" data-action="evolve"></menuitem>
+        </menu>
+    </li>
+    <li>
+        <button type="menu" value="View" menu="view-menu"></button>
+        <menu id="view-menu" type="popup">
+            <menuitem label="Appearance…" data-action="alterView"></menuitem>
+        </menu>
+    </li>
+</menu>
+
+<form action="#" class="oe-dialog oe-store-form hidden">
+    <h2>Store</h2>
+    <ul class="oe-store-list"></ul>
+    <fieldset class="oe-dialog-btns">
+        <input type="button" class="oe-apply" value="Load"/>
+        <input type="button" class="oe-discard" value="Cancel"/>
+    </fieldset>
+</form>
+
+<form action="#" class="oe-dialog oe-save-form hidden">
+    <h2>Save structure</h2>
+    <p>
+        <label for="oe-file-type">Select file type to save</label><br/>
+        <select id="oe-file-type">
+            <optgroup label="HyperChem" data-type="hin">
+                <option value="hin-basic" data-graph="basic" selected>HIN file (basic graph only)</option>
+                <option value="hin-extra" data-graph="extra">HIN file (basic and extra graphs)</option>
+                <option value="hin-empty" data-graph="empty">HIN file (empty graph)</option>
+            </optgroup>
+            <optgroup label="Tripos MOL2" data-type="ml2">
+                <option value="ml2-basic" data-graph="basic">ML2 file (basic graph only)</option>
+                <option value="ml2-extra" data-graph="extra">ML2 file (basic and extra graphs)</option>
+                <option value="ml2-empty" data-graph="empty">ML2 file (empty graph)</option>
+            </optgroup>
+            <optgroup label="Cartesian" data-type="xyz">
+                <option value="xyz">XYZ file</option>
+            </optgroup>
+        </select>
+    </p>
+    <div>
+        <p class="oe-description" data-type="hin-basic">Save in HyperChem file format (*.hin) skipping extra-bonds (they will be lost).</p>
+        <p class="oe-description hidden" data-type="hin-extra">Save in HyperChem file format (*.hin) and include extra-bonds. Such files could be reopened later in OpenEvolver, but they are not compatible with HyperChem as it doesn't recognize bonds of x-type (extra-bonds).</p>
+        <p class="oe-description hidden" data-type="hin-empty">Save in HyperChem file format (*.hin) with empty graph (separate atoms).</p>
+    </div>
+    <fieldset class="oe-dialog-btns">
+        <a href="#" class="oe-apply" download="">Save</a>
+        <input type="button" class="oe-discard" value="Cancel"/>
+    </fieldset>
+</form>
+
+<form action="#" class="oe-dialog oe-save-summary-form hidden">
+    <h2>Save summary</h2>
+    <p>
+        <a href="#" data-type="text/html" download="summary.html">Save as HTML document…</a><br/>
+        <a href="#" data-type="application/json" download="summary.json">Save as JSON…</a>
+    </p>
+    <fieldset class="oe-dialog-btns">
+        <input type="button" class="oe-discard" value="Cancel"/>
+    </fieldset>
+</form>
+
+<form action="#" class="oe-dialog oe-graph-form hidden" autocomplete="off">
+    <h2>Graph</h2>
+    <fieldset class="oe-cutoffs"></fieldset>
+    <fieldset>
+        <input type="range" class="oe-cutoff-slider" min="0" max="100" step="1" value="0"/>
+        <label class="oe-cutoff-min">
+            <input type="text" id="oe-cutoff-min" pattern="\d*\.?\d+([eE][+-]?\d+)?" value="0"/>
+            Minimum, Å
+        </label>
+        <label class="oe-cutoff-max">
+            <input type="text" id="oe-cutoff-max" pattern="\d*\.?\d+([eE][+-]?\d+)?" value="5"/>
+            Maximum, Å
+        </label>
+        <label class="oe-cutoff-exact">
+            <input type="text" id="oe-cutoff-exact" pattern="\d*\.?\d+([eE][+-]?\d+)?" value="0.0000"/>
+            Cutoff, Å
+        </label>
+    </fieldset>
+    <fieldset class="oe-dialog-btns">
+        <input type="button" class="oe-apply" value="OK"/>
+    </fieldset>
+</form>
+
+<form action="#" class="oe-dialog oe-potential-form hidden" autocomplete="off">
+    <h2>Potential parameters</h2>
+    <ul class="oe-potentials"></ul>
+    <p class="potential-filing">
+        <label>Load parameters…<input type="file" class="load-potentials" autocomplete="off"/></label> |
+        <a href="#" class="save-potentials" download="potentials.txt">Save parameters…</a>
+    </p>
+    <fieldset class="oe-dialog-btns">
+        <input type="button" class="oe-apply" value="OK"/>
+        <input type="button" class="oe-discard" value="Cancel"/>
+    </fieldset>
+</form>
+
+<form action="#" class="oe-dialog oe-transform-form hidden" autocomplete="off">
+    <h2>Transformation of coordinates</h2>
+    <fieldset class="oe-translate">
+        <legend>Translate</legend>
+        <p>Specify new coordinates of the center of mass</p>
+        <p>
+            <label><input type="text" data-axis="x"/><br/>X<sub>C</sub>, Å</label>
+            <label><input type="text" data-axis="y"/><br/>Y<sub>C</sub>, Å</label>
+            <label><input type="text" data-axis="z"/><br/>Z<sub>C</sub>, Å</label>
+            <input type="button" id="oe-translate-apply" value="&#x21A6;" title="Translate"/>
+        </p>
+    </fieldset>
+    <fieldset class="oe-rotate">
+        <legend>Rotate</legend>
+        <p>
+            <label for="oe-rotate-angle">Angle, deg</label><br/>
+            <input type="text" id="oe-rotate-angle"/>
+        </p>
+        <p>
+            <input type="button" data-axis="x" value="X"/>
+            <input type="button" data-axis="y" value="Y"/>
+            <input type="button" data-axis="z" value="Z"/>
+        </p>
+    </fieldset>
+    <fieldset class="oe-dialog-btns">
+        <input type="button" class="oe-discard" value="Close"/>
+    </fieldset>
+</form>
+
+<form action="#" class="oe-dialog oe-evolve-form hidden" autocomplete="off">
+    <h2>Evolution configuration</h2>
+    <div class="oe-evolve-params">
+        <fieldset>
+            <p><label>Step count<br/><input type="number" value="100" id="oe-step-count"/></label></p>
+            <p><label>Temperature, K<br/><input type="text" value="298" pattern="\d*\.?\d+([eE][+-]?\d+)?" id="oe-temperature"/></label></p>
+            <p><label><input type="checkbox" id="oe-stoch" checked/> Stochastization</label></p>
+        </fieldset>
+        <fieldset>
+            <p>
+                <label><input type="checkbox" id="oe-keep-log"/> Keep log</label><br/>
+                <label>Log interval<br/><input type="number" value="0" id="oe-log-interval" min="0" disabled/></label>
+            </p>
+            <p class="oe-description">
+                <b>E.g.:</b> set <kbd>5</kbd> to write log at every 5th step<br/>
+                <small><em>Be aware of possible performance degradation when using a short log interval for large structures and/or large step count</em></small>
+            </p>
+        </fieldset>
+    </div>
+    <fieldset class="oe-dialog-btns">
+        <input type="button" class="oe-apply" value="OK"/>
+        <input type="button" class="oe-discard" value="Cancel"/>
+    </fieldset>
+</form>
+
+<form action="#" class="oe-dialog oe-appearance-form hidden" autocomplete="off">
+    <h2>Appearance</h2>
+    <fieldset>
+        <legend>Model</legend>
+        <label><input type="radio" name="appearance" data-appearance="graph" checked/> Graph</label><br/>
+        <label><input type="radio" name="appearance" data-appearance="spheres"/> Spheres</label>
+    </fieldset>
+    <fieldset class="oe-appearance-colors">
+        <legend>Colors</legend>
+        <label>Element<br/><select id="oe-appearance-element"></select></label>
+        <label>Color<br/><input type="color" id="oe-appearance-color"/></label>
+        <hr/>
+        <label>Background <input type="color" id="oe-bg-color"/></label>
+    </fieldset>
+    <fieldset class="oe-dialog-btns">
+        <input type="button" class="oe-apply" value="OK"/>
+        <input type="button" class="oe-discard" value="Cancel"/>
+    </fieldset>
+</form>
+
+<div class="oe-dialog oe-save-log-dialog hidden">
+    <h2>Save evolution log</h2>
+    <p>
+        <a href="#" download="log.txt" data-delimiter="&#9;">Save as *.txt (Tab-separated values)…</a><br/>
+        <a href="#" download="log.csv" data-delimiter=";">Save as *.csv (semicolon-separated values)…</a>
+    </p>
+    <p class="oe-dialog-btns">
+        <input type="button" class="oe-discard" value="Close"/>
+    </p>
+</div>
+
+<div class="oe-dialog oe-info-dialog hidden">
+    <div class="oe-info-dialog-text"></div>
+    <p class="oe-dialog-btns">
+        <input type="button" class="oe-discard" value="Close"/>
+    </p>
+</div>
+
+<p class="oe-acknowledgements">Powered by <a href="http://threejs.org/" rel="nofollow" target="_blank">three.js</a></p>
+<div id="oe-view"></div>
+
+<div class="oe-report hidden">
+    <p><progress id="oe-report-progress" value="0" max="100"></progress></p>
+    <dl id="oe-report-data"></dl>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r72/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+<script src="src/js/fallback.js"></script>
+<script src="src/js/main.js"></script>
+</body>
+</html>

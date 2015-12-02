@@ -1,0 +1,521 @@
+forcefield mm+
+sys 0 0 0
+view 40 0.11654 55.9 15.9 6.123032e-017 0 1 0 1 0 -1 0 6.123032e-017 -3.8278e-016 2.0796e-007 -55.9
+box 14.0952 14.0952 14.0952
+seed -1111
+mol 1
+atom 1 - Ni NI2 - 0 -5.2857 -5.2857 -5.2857 0
+endmol 1
+mol 2
+atom 1 - Ni NI2 - 0 -5.2857 -5.2857 -1.7619 0
+endmol 2
+mol 3
+atom 1 - Ni NI2 - 0 -5.2857 -3.5238 -3.5238 0
+endmol 3
+mol 4
+atom 1 - Ni NI2 - 0 -5.2857 -5.2857 1.7619 0
+endmol 4
+mol 5
+atom 1 - Ni NI2 - 0 -5.2857 -3.5238 -1.587605e-008 0
+endmol 5
+mol 6
+atom 1 - Ni NI2 - 0 -5.2857 -5.2857 5.2857 0
+endmol 6
+mol 7
+atom 1 - Ni NI2 - 0 -5.2857 -3.5238 3.5238 0
+endmol 7
+mol 8
+atom 1 - Ni NI2 - 0 -5.2857 -1.7619 -5.2857 0
+endmol 8
+mol 9
+atom 1 - Ni NI2 - 0 -5.2857 -1.7619 -1.7619 0
+endmol 9
+mol 10
+atom 1 - Ni NI2 - 0 -5.2857 -2.384186e-007 -3.5238 0
+endmol 10
+mol 11
+atom 1 - Ni NI2 - 0 -5.2857 -1.7619 1.7619 0
+endmol 11
+mol 12
+atom 1 - Ni NI2 - 0 -5.2857 -2.384186e-007 -1.587605e-008 0
+endmol 12
+mol 13
+atom 1 - Ni NI2 - 0 -5.2857 -1.7619 5.2857 0
+endmol 13
+mol 14
+atom 1 - Ni NI2 - 0 -5.2857 -2.384186e-007 3.5238 0
+endmol 14
+mol 15
+atom 1 - Ni NI2 - 0 -5.2857 1.7619 -5.2857 0
+endmol 15
+mol 16
+atom 1 - Ni NI2 - 0 -5.2857 1.7619 -1.7619 0
+endmol 16
+mol 17
+atom 1 - Ni NI2 - 0 -5.2857 3.5238 -3.5238 0
+endmol 17
+mol 18
+atom 1 - Ni NI2 - 0 -5.2857 1.7619 1.7619 0
+endmol 18
+mol 19
+atom 1 - Ni NI2 - 0 -5.2857 3.5238 -1.587604e-008 0
+endmol 19
+mol 20
+atom 1 - Ni NI2 - 0 -5.2857 1.7619 5.2857 0
+endmol 20
+mol 21
+atom 1 - Ni NI2 - 0 -5.2857 3.5238 3.5238 0
+endmol 21
+mol 22
+atom 1 - Ni NI2 - 0 -5.2857 5.2857 -5.2857 0
+endmol 22
+mol 23
+atom 1 - Ni NI2 - 0 -5.2857 5.2857 -1.7619 0
+endmol 23
+mol 24
+atom 1 - Ni NI2 - 0 -5.2857 5.2857 1.7619 0
+endmol 24
+mol 25
+atom 1 - Ni NI2 - 0 -5.2857 5.2857 5.2857 0
+endmol 25
+mol 26
+atom 1 - Ni NI2 - 0 -1.761901 -5.2857 -5.2857 0
+endmol 26
+mol 27
+atom 1 - Ni NI2 - 0 -3.523801 -3.5238 -5.2857 0
+endmol 27
+mol 28
+atom 1 - Ni NI2 - 0 -3.523801 -5.2857 -3.5238 0
+endmol 28
+mol 29
+atom 1 - Ni NI2 - 0 -1.761901 -5.2857 -1.7619 0
+endmol 29
+mol 30
+atom 1 - Ni NI2 - 0 -1.761901 -3.5238 -3.5238 0
+endmol 30
+mol 31
+atom 1 - Ni NI2 - 0 -3.523801 -3.5238 -1.7619 0
+endmol 31
+mol 32
+atom 1 - Ni NI2 - 0 -3.523801 -5.2857 -1.587605e-008 0
+endmol 32
+mol 33
+atom 1 - Ni NI2 - 0 -1.761901 -5.2857 1.7619 0
+endmol 33
+mol 34
+atom 1 - Ni NI2 - 0 -1.761901 -3.5238 -1.587605e-008 0
+endmol 34
+mol 35
+atom 1 - Ni NI2 - 0 -3.523801 -3.5238 1.7619 0
+endmol 35
+mol 36
+atom 1 - Ni NI2 - 0 -3.523801 -5.2857 3.5238 0
+endmol 36
+mol 37
+atom 1 - Ni NI2 - 0 -1.761901 -5.2857 5.2857 0
+endmol 37
+mol 38
+atom 1 - Ni NI2 - 0 -1.761901 -3.5238 3.5238 0
+endmol 38
+mol 39
+atom 1 - Ni NI2 - 0 -3.523801 -3.5238 5.2857 0
+endmol 39
+mol 40
+atom 1 - Ni NI2 - 0 -1.761901 -1.7619 -5.2857 0
+endmol 40
+mol 41
+atom 1 - Ni NI2 - 0 -3.523801 -2.384186e-007 -5.2857 0
+endmol 41
+mol 42
+atom 1 - Ni NI2 - 0 -3.523801 -1.7619 -3.5238 0
+endmol 42
+mol 43
+atom 1 - Ni NI2 - 0 -1.761901 -1.7619 -1.7619 0
+endmol 43
+mol 44
+atom 1 - Ni NI2 - 0 -1.761901 -2.384186e-007 -3.5238 0
+endmol 44
+mol 45
+atom 1 - Ni NI2 - 0 -3.523801 -2.384186e-007 -1.7619 0
+endmol 45
+mol 46
+atom 1 - Ni NI2 - 0 -3.523801 -1.7619 -1.587605e-008 0
+endmol 46
+mol 47
+atom 1 - Ni NI2 - 0 -1.761901 -1.7619 1.7619 0
+endmol 47
+mol 48
+atom 1 - Ni NI2 - 0 -1.761901 -2.384186e-007 -1.587604e-008 0
+endmol 48
+mol 49
+atom 1 - Ni NI2 - 0 -3.523801 -2.384186e-007 1.7619 0
+endmol 49
+mol 50
+atom 1 - Ni NI2 - 0 -3.523801 -1.7619 3.5238 0
+endmol 50
+mol 51
+atom 1 - Ni NI2 - 0 -1.761901 -1.7619 5.2857 0
+endmol 51
+mol 52
+atom 1 - Ni NI2 - 0 -1.761901 -2.384186e-007 3.5238 0
+endmol 52
+mol 53
+atom 1 - Ni NI2 - 0 -3.523801 -2.384186e-007 5.2857 0
+endmol 53
+mol 54
+atom 1 - Ni NI2 - 0 -1.761901 1.7619 -5.2857 0
+endmol 54
+mol 55
+atom 1 - Ni NI2 - 0 -3.523801 3.5238 -5.2857 0
+endmol 55
+mol 56
+atom 1 - Ni NI2 - 0 -3.523801 1.7619 -3.5238 0
+endmol 56
+mol 57
+atom 1 - Ni NI2 - 0 -1.761901 1.7619 -1.7619 0
+endmol 57
+mol 58
+atom 1 - Ni NI2 - 0 -1.761901 3.5238 -3.5238 0
+endmol 58
+mol 59
+atom 1 - Ni NI2 - 0 -3.523801 3.5238 -1.7619 0
+endmol 59
+mol 60
+atom 1 - Ni NI2 - 0 -3.523801 1.7619 -1.587604e-008 0
+endmol 60
+mol 61
+atom 1 - Ni NI2 - 0 -1.761901 1.7619 1.7619 0
+endmol 61
+mol 62
+atom 1 - Ni NI2 - 0 -1.761901 3.5238 -1.587604e-008 0
+endmol 62
+mol 63
+atom 1 - Ni NI2 - 0 -3.523801 3.5238 1.7619 0
+endmol 63
+mol 64
+atom 1 - Ni NI2 - 0 -3.523801 1.7619 3.5238 0
+endmol 64
+mol 65
+atom 1 - Ni NI2 - 0 -1.761901 1.7619 5.2857 0
+endmol 65
+mol 66
+atom 1 - Ni NI2 - 0 -1.761901 3.5238 3.5238 0
+endmol 66
+mol 67
+atom 1 - Ni NI2 - 0 -3.523801 3.5238 5.2857 0
+endmol 67
+mol 68
+atom 1 - Ni NI2 - 0 -1.761901 5.2857 -5.2857 0
+endmol 68
+mol 69
+atom 1 - Ni NI2 - 0 -3.523801 5.2857 -3.5238 0
+endmol 69
+mol 70
+atom 1 - Ni NI2 - 0 -1.761901 5.2857 -1.7619 0
+endmol 70
+mol 71
+atom 1 - Ni NI2 - 0 -3.523801 5.2857 -1.587604e-008 0
+endmol 71
+mol 72
+atom 1 - Ni NI2 - 0 -1.761901 5.2857 1.7619 0
+endmol 72
+mol 73
+atom 1 - Ni NI2 - 0 -3.523801 5.2857 3.5238 0
+endmol 73
+mol 74
+atom 1 - Ni NI2 - 0 -1.761901 5.2857 5.2857 0
+endmol 74
+mol 75
+atom 1 - Ni NI2 - 0 1.761899 -5.2857 -5.2857 0
+endmol 75
+mol 76
+atom 1 - Ni NI2 - 0 -6.082086e-007 -3.5238 -5.2857 0
+endmol 76
+mol 77
+atom 1 - Ni NI2 - 0 -6.082086e-007 -5.2857 -3.5238 0
+endmol 77
+mol 78
+atom 1 - Ni NI2 - 0 1.761899 -5.2857 -1.7619 0
+endmol 78
+mol 79
+atom 1 - Ni NI2 - 0 1.761899 -3.5238 -3.5238 0
+endmol 79
+mol 80
+atom 1 - Ni NI2 - 0 -6.082086e-007 -3.5238 -1.7619 0
+endmol 80
+mol 81
+atom 1 - Ni NI2 - 0 -6.082086e-007 -5.2857 -1.587605e-008 0
+endmol 81
+mol 82
+atom 1 - Ni NI2 - 0 1.761899 -5.2857 1.7619 0
+endmol 82
+mol 83
+atom 1 - Ni NI2 - 0 1.761899 -3.5238 -1.587604e-008 0
+endmol 83
+mol 84
+atom 1 - Ni NI2 - 0 -6.082086e-007 -3.5238 1.7619 0
+endmol 84
+mol 85
+atom 1 - Ni NI2 - 0 -6.082086e-007 -5.2857 3.5238 0
+endmol 85
+mol 86
+atom 1 - Ni NI2 - 0 1.761899 -5.2857 5.2857 0
+endmol 86
+mol 87
+atom 1 - Ni NI2 - 0 1.761899 -3.5238 3.5238 0
+endmol 87
+mol 88
+atom 1 - Ni NI2 - 0 -6.082086e-007 -3.5238 5.2857 0
+endmol 88
+mol 89
+atom 1 - Ni NI2 - 0 1.761899 -1.7619 -5.2857 0
+endmol 89
+mol 90
+atom 1 - Ni NI2 - 0 -6.082086e-007 -2.384186e-007 -5.2857 0
+endmol 90
+mol 91
+atom 1 - Ni NI2 - 0 -6.082086e-007 -1.7619 -3.5238 0
+endmol 91
+mol 92
+atom 1 - Ni NI2 - 0 1.761899 -1.7619 -1.7619 0
+endmol 92
+mol 93
+atom 1 - Ni NI2 - 0 1.761899 -2.384186e-007 -3.5238 0
+endmol 93
+mol 94
+atom 1 - Ni NI2 - 0 -6.082086e-007 -2.384186e-007 -1.7619 0
+endmol 94
+mol 95
+atom 1 - Ni NI2 - 0 -6.082086e-007 -1.7619 -1.587604e-008 0
+endmol 95
+mol 96
+atom 1 - Ni NI2 - 0 1.761899 -1.7619 1.7619 0
+endmol 96
+mol 97
+atom 1 - Ni NI2 - 0 1.761899 -2.384186e-007 -1.587604e-008 0
+endmol 97
+mol 98
+atom 1 - Ni NI2 - 0 -6.082086e-007 -2.384186e-007 1.7619 0
+endmol 98
+mol 99
+atom 1 - Ni NI2 - 0 -6.082086e-007 -1.7619 3.5238 0
+endmol 99
+mol 100
+atom 1 - Ni NI2 - 0 1.761899 -1.7619 5.2857 0
+endmol 100
+mol 101
+atom 1 - Ni NI2 - 0 1.761899 -2.384186e-007 3.5238 0
+endmol 101
+mol 102
+atom 1 - Ni NI2 - 0 -6.082086e-007 -2.384186e-007 5.2857 0
+endmol 102
+mol 103
+atom 1 - Ni NI2 - 0 1.761899 1.7619 -5.2857 0
+endmol 103
+mol 104
+atom 1 - Ni NI2 - 0 -6.082086e-007 3.5238 -5.2857 0
+endmol 104
+mol 105
+atom 1 - Ni NI2 - 0 -6.082086e-007 1.7619 -3.5238 0
+endmol 105
+mol 106
+atom 1 - Ni NI2 - 0 1.761899 1.7619 -1.7619 0
+endmol 106
+mol 107
+atom 1 - Ni NI2 - 0 1.761899 3.5238 -3.5238 0
+endmol 107
+mol 108
+atom 1 - Ni NI2 - 0 -6.082086e-007 3.5238 -1.7619 0
+endmol 108
+mol 109
+atom 1 - Ni NI2 - 0 -6.082086e-007 1.7619 -1.587604e-008 0
+endmol 109
+mol 110
+atom 1 - Ni NI2 - 0 1.761899 1.7619 1.7619 0
+endmol 110
+mol 111
+atom 1 - Ni NI2 - 0 1.761899 3.5238 -1.587603e-008 0
+endmol 111
+mol 112
+atom 1 - Ni NI2 - 0 -6.082086e-007 3.5238 1.7619 0
+endmol 112
+mol 113
+atom 1 - Ni NI2 - 0 -6.082086e-007 1.7619 3.5238 0
+endmol 113
+mol 114
+atom 1 - Ni NI2 - 0 1.761899 1.7619 5.2857 0
+endmol 114
+mol 115
+atom 1 - Ni NI2 - 0 1.761899 3.5238 3.5238 0
+endmol 115
+mol 116
+atom 1 - Ni NI2 - 0 -6.082086e-007 3.5238 5.2857 0
+endmol 116
+mol 117
+atom 1 - Ni NI2 - 0 1.761899 5.2857 -5.2857 0
+endmol 117
+mol 118
+atom 1 - Ni NI2 - 0 -6.082086e-007 5.2857 -3.5238 0
+endmol 118
+mol 119
+atom 1 - Ni NI2 - 0 1.761899 5.2857 -1.7619 0
+endmol 119
+mol 120
+atom 1 - Ni NI2 - 0 -6.082086e-007 5.2857 -1.587603e-008 0
+endmol 120
+mol 121
+atom 1 - Ni NI2 - 0 1.761899 5.2857 1.7619 0
+endmol 121
+mol 122
+atom 1 - Ni NI2 - 0 -6.082086e-007 5.2857 3.5238 0
+endmol 122
+mol 123
+atom 1 - Ni NI2 - 0 1.761899 5.2857 5.2857 0
+endmol 123
+mol 124
+atom 1 - Ni NI2 - 0 5.285699 -5.2857 -5.2857 0
+endmol 124
+mol 125
+atom 1 - Ni NI2 - 0 3.523799 -3.5238 -5.2857 0
+endmol 125
+mol 126
+atom 1 - Ni NI2 - 0 3.523799 -5.2857 -3.5238 0
+endmol 126
+mol 127
+atom 1 - Ni NI2 - 0 5.285699 -5.2857 -1.7619 0
+endmol 127
+mol 128
+atom 1 - Ni NI2 - 0 5.285699 -3.5238 -3.5238 0
+endmol 128
+mol 129
+atom 1 - Ni NI2 - 0 3.523799 -3.5238 -1.7619 0
+endmol 129
+mol 130
+atom 1 - Ni NI2 - 0 3.523799 -5.2857 -1.587604e-008 0
+endmol 130
+mol 131
+atom 1 - Ni NI2 - 0 5.285699 -5.2857 1.7619 0
+endmol 131
+mol 132
+atom 1 - Ni NI2 - 0 5.285699 -3.5238 -1.587604e-008 0
+endmol 132
+mol 133
+atom 1 - Ni NI2 - 0 3.523799 -3.5238 1.7619 0
+endmol 133
+mol 134
+atom 1 - Ni NI2 - 0 3.523799 -5.2857 3.5238 0
+endmol 134
+mol 135
+atom 1 - Ni NI2 - 0 5.285699 -5.2857 5.2857 0
+endmol 135
+mol 136
+atom 1 - Ni NI2 - 0 5.285699 -3.5238 3.5238 0
+endmol 136
+mol 137
+atom 1 - Ni NI2 - 0 3.523799 -3.5238 5.2857 0
+endmol 137
+mol 138
+atom 1 - Ni NI2 - 0 5.285699 -1.7619 -5.2857 0
+endmol 138
+mol 139
+atom 1 - Ni NI2 - 0 3.523799 -2.384186e-007 -5.2857 0
+endmol 139
+mol 140
+atom 1 - Ni NI2 - 0 3.523799 -1.7619 -3.5238 0
+endmol 140
+mol 141
+atom 1 - Ni NI2 - 0 5.285699 -1.7619 -1.7619 0
+endmol 141
+mol 142
+atom 1 - Ni NI2 - 0 5.285699 -2.384186e-007 -3.5238 0
+endmol 142
+mol 143
+atom 1 - Ni NI2 - 0 3.523799 -2.384186e-007 -1.7619 0
+endmol 143
+mol 144
+atom 1 - Ni NI2 - 0 3.523799 -1.7619 -1.587604e-008 0
+endmol 144
+mol 145
+atom 1 - Ni NI2 - 0 5.285699 -1.7619 1.7619 0
+endmol 145
+mol 146
+atom 1 - Ni NI2 - 0 5.285699 -2.384186e-007 -1.587603e-008 0
+endmol 146
+mol 147
+atom 1 - Ni NI2 - 0 3.523799 -2.384186e-007 1.7619 0
+endmol 147
+mol 148
+atom 1 - Ni NI2 - 0 3.523799 -1.7619 3.5238 0
+endmol 148
+mol 149
+atom 1 - Ni NI2 - 0 5.285699 -1.7619 5.2857 0
+endmol 149
+mol 150
+atom 1 - Ni NI2 - 0 5.285699 -2.384186e-007 3.5238 0
+endmol 150
+mol 151
+atom 1 - Ni NI2 - 0 3.523799 -2.384186e-007 5.2857 0
+endmol 151
+mol 152
+atom 1 - Ni NI2 - 0 5.285699 1.7619 -5.2857 0
+endmol 152
+mol 153
+atom 1 - Ni NI2 - 0 3.523799 3.5238 -5.2857 0
+endmol 153
+mol 154
+atom 1 - Ni NI2 - 0 3.523799 1.7619 -3.5238 0
+endmol 154
+mol 155
+atom 1 - Ni NI2 - 0 5.285699 1.7619 -1.7619 0
+endmol 155
+mol 156
+atom 1 - Ni NI2 - 0 5.285699 3.5238 -3.5238 0
+endmol 156
+mol 157
+atom 1 - Ni NI2 - 0 3.523799 3.5238 -1.7619 0
+endmol 157
+mol 158
+atom 1 - Ni NI2 - 0 3.523799 1.7619 -1.587603e-008 0
+endmol 158
+mol 159
+atom 1 - Ni NI2 - 0 5.285699 1.7619 1.7619 0
+endmol 159
+mol 160
+atom 1 - Ni NI2 - 0 5.285699 3.5238 -1.587603e-008 0
+endmol 160
+mol 161
+atom 1 - Ni NI2 - 0 3.523799 3.5238 1.7619 0
+endmol 161
+mol 162
+atom 1 - Ni NI2 - 0 3.523799 1.7619 3.5238 0
+endmol 162
+mol 163
+atom 1 - Ni NI2 - 0 5.285699 1.7619 5.2857 0
+endmol 163
+mol 164
+atom 1 - Ni NI2 - 0 5.285699 3.5238 3.5238 0
+endmol 164
+mol 165
+atom 1 - Ni NI2 - 0 3.523799 3.5238 5.2857 0
+endmol 165
+mol 166
+atom 1 - Ni NI2 - 0 5.285699 5.2857 -5.2857 0
+endmol 166
+mol 167
+atom 1 - Ni NI2 - 0 3.523799 5.2857 -3.5238 0
+endmol 167
+mol 168
+atom 1 - Ni NI2 - 0 5.285699 5.2857 -1.7619 0
+endmol 168
+mol 169
+atom 1 - Ni NI2 - 0 3.523799 5.2857 -1.587603e-008 0
+endmol 169
+mol 170
+atom 1 - Ni NI2 - 0 5.285699 5.2857 1.7619 0
+endmol 170
+mol 171
+atom 1 - Ni NI2 - 0 3.523799 5.2857 3.5238 0
+endmol 171
+mol 172
+atom 1 - Ni NI2 - 0 5.285699 5.2857 5.2857 0
+endmol 172

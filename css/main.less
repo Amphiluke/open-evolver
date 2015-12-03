@@ -1,0 +1,96 @@
+html {
+    background:#000 url(../images/bg.png) fixed;
+}
+
+body {
+    color:#eee;
+    font:16px/1.375 "Trebuchet MS", Arial, sans-serif;
+    margin:15px auto;
+    max-width:900px;
+}
+
+a {
+    color:#eea;
+    &:hover {
+        color:#ff0;
+    }
+}
+abbr[title] {
+    border-bottom:1px dashed;
+    cursor:help;
+    text-decoration:none;
+}
+
+header {
+    padding-left:50px;
+}
+
+main {
+    background:fade(#1d340f, 80%);
+    border-radius:10px;
+    box-shadow:0 0 13px 20px fade(#1d340f, 80%);
+    display:block; // IE
+    margin:30px;
+    padding:10px 20px;
+}
+
+.oe-logo {
+    margin-right:10px;
+    &,
+    & + h1 {
+        display:inline-block;
+        vertical-align:middle;
+    }
+}
+
+.oe-run {
+    margin-top:40px;
+    text-align:center;
+    a {
+        border:1px solid;
+        border-radius:3px;
+        display:inline-block;
+        padding:0.7em;
+        text-decoration:none;
+        &:after {
+            content:" ►";
+            font-family:Arial,sans-serif;
+        }
+    }
+}
+.mobile-note {
+    display:inline-block;
+    font-size:0.8em;
+    margin-top:1em;
+    max-width:290px;
+}
+
+.oe-copyright {
+    font-size:0.9em;
+    text-align:right;
+    padding-right:30px;
+}
+
+@media (min-width:768px) {
+    .mobile-note {
+        display:none;
+    }
+}
+
+@media (max-width:499px) {
+    header {
+        padding-left:20px;
+    }
+
+    main {
+        box-shadow:0 0 4px 5px fade(#1d340f, 80%);
+        border-radius:5px;
+        display:block; // IE
+        margin:10px;
+        padding:5px 10px;
+    }
+
+    ul {
+        padding-left:15px;
+    }
+}

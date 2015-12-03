@@ -4,8 +4,54 @@
     <meta charset="UTF-8"/>
     <title>Open evolver</title>
     <link rel="icon" type="image/png" href="favicon.png"/>
+    <link rel="stylesheet" href="css/main.css"/>
 </head>
 <body>
-    <p><a href="build/">Launch Open Evolver</a></p>
+    <header>
+        <img src="images/logo.png" alt="" width="48" height="48" class="oe-logo"/>
+        <h1>Open evolver</h1>
+    </header>
+
+    <main>
+        <h2>What is <abbr title="Open evolver">OE</abbr>?</h2>
+        <p>“Open evolver” (OE) is an open source cross-platform web-based version of the <a href="http://compnano.1gb.ru/taxonomy/term/2" target="_blank" title="In Russian">NanoEvolver</a> software for Windows. <abbr title="Open evolver">OE</abbr> is an experimental project, so one shouldn't expect from it to reproduce the original functionality completely. This is rather a publicly available demonstration of the essentials underlying the stochastic femtosecond nonequilibrium nanodynamics method in computer simulation of the evolution processes at the nanoscale. Any advanced features and abilities are to be referred to the original software product.</p>
+
+        <h2>What is <abbr title="Open evolver">OE</abbr> for?</h2>
+        <p>With “Open evolver” you are able to</p>
+        <ul>
+            <li>load nanostructures from files stored locally on the client's PC;</li>
+            <li>load cut and dried nanostructures from the application's internal “Store”;</li>
+            <li>view 3D models of the loaded nanostructures;</li>
+            <li>manually control the binding graph of a nanostructure based on cutoff radii;</li>
+            <li>move and rotate a nanostructure as a whole via transformation of atomic coordinates;</li>
+            <li>specify any suitable parameters of the approximating pair potentials;</li>
+            <li>calculate both total binding energy of a model nanostructure and the norm of its energy gradient vector in configuration space;</li>
+            <li>simulate nonequilibrium femtosecond evolution of a nanoparticle under the desired temperature conditions;</li>
+            <li>get the evolution log data ready to be used to plot time-based graphs of a nanostructure's energy and non-adiabatic state lifetimes;</li>
+            <li>save a summary report on a nanostructure characteristics;</li>
+            <li>save a modified nanostructure into a local file in one of the suitable file formats.</li>
+        </ul>
+
+        <h2>What is <abbr title="Open evolver">OE</abbr> built upon?</h2>
+        <p>As it is mentioned earlier, “Open evolver” was inspired by the ideas behind the NanoEvolver software for Windows. Due to the specific of the web platform, <a href="https://github.com/Amphiluke/open-evolver/tree/master" target="_blank">codebase of the <abbr title="Open evolver">OE</abbr></a> is pretty much independent of the original.</p>
+        <p>The following awesome third-party products which power <abbr title="Open evolver">OE</abbr> under the hood:</p>
+        <ul>
+            <li><a href="http://threejs.org/" target="_blank" rel="nofollow">three.js</a></li>
+            <li><a href="http://jquery.com/" target="_blank" rel="nofollow">jQuery</a></li>
+            <li><a href="http://underscorejs.org/" target="_blank" rel="nofollow">underscore.js</a></li>
+            <li><a href="http://lesscss.org/" target="_blank" rel="nofollow">Less pre-processor</a></li>
+            <li><a href="http://necolas.github.io/normalize.css/" target="_blank" rel="nofollow">normalize.css</a></li>
+            <li>and also awesome <a href="https://nodejs.org/" target="_blank" rel="nofollow">Node.js</a> together with its modules (which may be seen in <abbr title="Open evolver">OE</abbr>'s <a href="https://github.com/Amphiluke/open-evolver/blob/master/package.json" target="_blank">package.json</a>).</li>
+        </ul>
+
+        <p class="oe-run">
+            <a href="build/">Run Open evolver</a><br/>
+            <span class="mobile-note">Note that the “Open evolver” app is currently optimized for desktop browsers only, so it may appear to be less usable on smaller screens.</span>
+        </p>
+    </main>
+
+    <footer>
+        <p class="oe-copyright">© Amphiluke, 2015</p>
+    </footer>
 </body>
 </html>

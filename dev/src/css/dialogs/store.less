@@ -3,8 +3,12 @@
 .oe-store-list {
     list-style:none;
     max-height:250px;
+    min-height:20px; // reserve space for the loading background
     overflow:auto;
     padding:0;
+    &-loading {
+        background:url(../../img/loader.gif) 50% 50% no-repeat;
+    }
     > li {
         cursor:pointer;
         padding:0.2em 0.5em;

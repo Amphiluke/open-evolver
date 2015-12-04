@@ -9,6 +9,7 @@ var _ = global._,
 
 
 OE.structure = {
+    name: "",
     atoms: [],
     bonds: [],
     potentials: {}

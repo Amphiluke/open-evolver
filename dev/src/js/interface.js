@@ -31,7 +31,13 @@ ui.proto = {
         var events = this.events || (this.events = {});
         _.each(events, function (config) {
             var handler = (typeof config.handler === "string") ? this[config.handler] : config.handler;
-            ui.$(config.owner || this.$el).on(config.type, config.filter || null, handler.bind(this));
+            if (OE.observer.isPrototypeOf(config.owner)) {
+                // Events on objects inheriting the Pub/Sub functionality from `OE.observer`
+                config.owner.on(config.type, handler.bind(this));
+            } else {
+                // DOM events and custom events processed by jQuery
+                ui.$(config.owner || this.$el).on(config.type, config.filter || null, handler.bind(this));
+            }
         }, this);
         return this;
     }
@@ -126,12 +132,12 @@ ui.store = (_.extend(Object.create(ui.abstractDialog), {
         var $list;
         if (!this.loaded) {
             $list = this.$el.find(".oe-store-list");
-            $list.addClass(".oe-store-list-loading");
+            $list.addClass("oe-store-list-loading");
             $.getJSON("../store/info.json")
                 .done(this.resetHTML.bind(this))
                 .fail(this.resetHTML.bind(this, undefined))
                 .always(function () {
-                    $list.removeClass(".oe-store-list-loading");
+                    $list.removeClass("oe-store-list-loading");
                 });
             this.loaded = true;
         }
@@ -187,8 +193,14 @@ ui.saveSummary = (_.extend(Object.create(ui.abstractDialog), {
     data: null,
 
     events: [
+        {type: "collectStats", owner: OE.worker, handler: "handleCollectStats"},
         {type: "click", filter: "a[download]", handler: "handleSave"}
     ],
+
+    handleCollectStats: function (data) {
+        this.data = data;
+        this.show();
+    },
 
     handleSave: function (e) {
         var type, text;
@@ -215,21 +227,20 @@ ui.saveSummary = (_.extend(Object.create(ui.abstractDialog), {
 ui.graph = (_.extend(Object.create(ui.abstractDialog), {
     $el: $(".oe-graph-form"),
 
-    init: function () {
-        OE.structureUtils.on("updateStructure", function (pairsUpdated) {
-            if (pairsUpdated) {
-                ui.graph.resetHTML.call(ui.graph);
-            }
-        });
-        return ui.abstractDialog.init.apply(this, arguments);
-    },
-
     events: [
+        {type: "updateStructure", owner: OE.structureUtils, handler: "handleUpdateStructure"},
+
         {type: "click", filter: ".oe-cutoffs .oe-cutoff", handler: "handlePairSelect"},
         {type: "change", filter: ".oe-cutoff-slider", handler: "handleSliderChange"},
         {type: "input", owner: "#oe-cutoff-exact", handler: "handleCutoffInput"},
         {type: "change", owner: "#oe-cutoff-exact", handler: "handleCutoffChange"}
     ],
+
+    handleUpdateStructure: function (pairsUpdated) {
+        if (pairsUpdated) {
+            this.resetHTML();
+        }
+    },
 
     handlePairSelect: function (e) {
         var target = $(e.target),
@@ -292,19 +303,18 @@ ui.graph = (_.extend(Object.create(ui.abstractDialog), {
 ui.potentials = (_.extend(Object.create(ui.abstractDialog), {
     $el: $(".oe-potential-form"),
 
-    init: function () {
-        OE.structureUtils.on("updateStructure", function (pairsUpdated) {
-            if (pairsUpdated) {
-                ui.potentials.resetHTML.call(ui.potentials);
-            }
-        });
-        return ui.abstractDialog.init.apply(this, arguments);
-    },
-
     events: [
+        {type: "updateStructure", owner: OE.structureUtils, handler: "handleUpdateStructure"},
+
         {type: "change", filter: ".load-potentials", handler: "handleLoad"},
         {type: "click", filter: ".save-potentials", handler: "handleSave"}
     ],
+
+    handleUpdateStructure: function (pairsUpdated) {
+        if (pairsUpdated) {
+            this.resetHTML();
+        }
+    },
 
     handleLoad: function (e) {
         OE.fileAPI.readFile(e.target.files[0], function (contents) {
@@ -397,9 +407,17 @@ ui.transform = (_.extend(Object.create(ui.abstractDialog), {
     $el: $(".oe-transform-form"),
 
     events: [
+        {type: "stateChange", owner: app, handler: "handleAppStateChange"},
+
         {type: "click", owner: "#oe-translate-apply", handler: "handleTranslate"},
         {type: "click", filter: ".oe-rotate [data-axis]", handler: "handleRotate"}
     ],
+
+    handleAppStateChange: function () {
+        // Transformation of coordinates may take a while for large structures.
+        // Block interface while the app is busy
+        this.$el.find("fieldset").prop("disabled", (app.state === app.BUSY));
+    },
 
     handleTranslate: function () {
         var fieldSet = this.$el.find(".oe-translate"),
@@ -428,6 +446,10 @@ ui.transform = (_.extend(Object.create(ui.abstractDialog), {
 ui.report = (_.extend(Object.create(ui.abstractDialog), {
     $el: $(".oe-report"),
 
+    events: [
+        {type: "evolve.progress", owner: OE.worker, handler: "updateProgress"}
+    ],
+
     handleGlobalKeyUp: $.noop, // override the inherited behavior hiding the dialog on Esc key press
 
     print: function (data) {
@@ -445,14 +467,9 @@ ui.evolve = (_.extend(Object.create(ui.abstractDialog), {
     $el: $(".oe-evolve-form"),
 
     events: [
+        {type: "evolve", owner: OE.worker, handler: "handleEvolveStop"},
         {type: "change", owner: "#oe-keep-log", handler: "handleKeepLogChange"}
     ],
-
-    init: function () {
-        OE.worker.on("evolve", this.handleEvolveStop.bind(this));
-        OE.worker.on("evolve.progress", ui.report.updateProgress.bind(ui.report));
-        return ui.abstractDialog.init.apply(this, arguments);
-    },
 
     handleEvolveStop: function (data) {
         ui.report.print(data);
@@ -490,12 +507,8 @@ ui.evolve = (_.extend(Object.create(ui.abstractDialog), {
 ui.saveLog = (_.extend(Object.create(ui.abstractDialog), {
     $el: $(".oe-save-log-dialog"),
 
-    init: function () {
-        OE.worker.on("evolve.log", this.handleEvolveLog.bind(this));
-        return ui.abstractDialog.init.apply(this, arguments);
-    },
-
     events: [
+        {type: "evolve.log", owner: OE.worker, handler: "handleEvolveLog"},
         {type: "click", filter: "a[download]", handler: "handleSave"}
     ],
 
@@ -528,12 +541,9 @@ ui.saveLog = (_.extend(Object.create(ui.abstractDialog), {
 ui.appearance = (_.extend(Object.create(ui.abstractDialog), {
     $el: $(".oe-appearance-form"),
 
-    init: function () {
-        OE.structureUtils.on("updateStructure", this.handleUpdateStructure.bind(this));
-        return ui.abstractDialog.init.apply(this, arguments);
-    },
-
     events: [
+        {type: "updateStructure", owner: OE.structureUtils, handler: "handleUpdateStructure"},
+
         {type: "change", owner: "#oe-appearance-element", handler: "setCurrElementColor"},
         {type: "change", owner: "#oe-appearance-color", handler: "handleColorChange"}
     ],
@@ -591,6 +601,24 @@ ui.appearance = (_.extend(Object.create(ui.abstractDialog), {
 ui.info = (_.extend(Object.create(ui.abstractDialog), {
     $el: $(".oe-info-dialog"),
 
+    events: [
+        {type: "totalEnergy", owner: OE.worker, handler: "handleTotalEnergy"},
+        {type: "gradient", owner: OE.worker, handler: "handleGradient"}
+    ],
+
+    handleTotalEnergy: function (data) {
+        this.applyTpl("energy", {
+            energy: data,
+            bonds: OE.structure.bonds.length
+        });
+        this.show();
+    },
+
+    handleGradient: function (data) {
+        this.applyTpl("gradient", {grad: data});
+        this.show();
+    },
+
     applyTpl: function (tpl, data) {
         this.$el.find(".oe-info-dialog-text").html(ui.tpls[tpl](data));
     }
@@ -602,11 +630,12 @@ ui.menu = (_.extend(Object.create(ui.proto), {
 
     init: function () {
         this.setItemStates();
-        OE.app.on("stateChange", this.setItemStates.bind(this));
         return ui.proto.init.apply(this, arguments);
     },
 
     events: [
+        {type: "stateChange", owner: OE.app, handler: "setItemStates"},
+
         {type: "click.oe", owner: $doc, handler: "handleGlobalClick"},
         {type: "mouseenter", owner: ".oe-menu", filter: "button[menu]", handler: "handleHover"},
         {type: "click", owner: ".oe-menu", filter: "menuitem[data-action]", handler: "handleAction"},
@@ -742,23 +771,10 @@ ui.view = (_.extend(Object.create(ui.proto), {
 })).init();
 
 
-OE.worker.on("totalEnergy", function (data) {
-    ui.info.applyTpl("energy", {
-        energy: data,
-        bonds: OE.structure.bonds.length
-    });
-    ui.info.show();
-});
-
-OE.worker.on("gradient", function (data) {
-    ui.info.applyTpl("gradient", {grad: data});
-    ui.info.show();
-});
-
-OE.worker.on("collectStats", function (data) {
-    data.name = $("#oe-file")[0].files[0].name;
-    ui.saveSummary.data = data;
-    ui.saveSummary.show();
+OE.structureUtils.on("updateStructure", function (rescanAtoms) {
+    if (rescanAtoms) {
+        document.title = OE.structure.name + " - Open evolver";
+    }
 });
 
 

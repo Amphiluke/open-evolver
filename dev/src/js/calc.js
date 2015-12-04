@@ -98,6 +98,7 @@ api.collectStats = function () {
         prefix, pair,
         distance;
 
+    data.name = structure.name;
     data.atomCount = len = atoms.length;
     data.atoms = {};
     for (i = 0; i < len; i++) {

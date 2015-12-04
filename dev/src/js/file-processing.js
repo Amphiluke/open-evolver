@@ -119,12 +119,14 @@ formats.xyz = {
     }
 };
 
-fileAPI.load = function (fileObj, cb) {
-    this.readFile(fileObj, function (contents) {
-        var name = fileObj.name || String(fileObj),
+fileAPI.load = function (fileRef, cb) {
+    this.readFile(fileRef, function (contents) {
+        var name = fileRef.name || String(fileRef),
             type = name.slice(name.lastIndexOf(".") + 1).toLowerCase(),
-            format = formats[type] || formats.hin;
-        OE.structureUtils.overwrite(format.parse(contents));
+            format = formats[type] || formats.hin,
+            structure = format.parse(contents);
+        structure.name = name.replace(/.*[\/\\]/, "") || "unknown";
+        OE.structureUtils.overwrite(structure);
         OE.view.render();
         if (typeof cb === "function") {
             cb(contents);

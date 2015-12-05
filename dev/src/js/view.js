@@ -2,7 +2,8 @@
 
 "use strict";
 
-var THREE = global.THREE,
+var _ = global._,
+    THREE = global.THREE,
     OE = global.OE || (global.OE = {}),
     view = OE.view = {},
     canvas = {
@@ -11,63 +12,78 @@ var THREE = global.THREE,
         height: 500
     };
 
-
-view.colors = {
-    get: function (color) {
-        // Create an instance only on actual need (when requested for the first time) and then cache it
-        if (!this._cache.hasOwnProperty(color)) {
-            this._cache[color] = new THREE.Color(color);
+var cacheProto = {
+    init: function (createFn) {
+        Object.defineProperties(this, {
+            _cache: {value: {}},
+            create: {configurable: true, value: createFn}
+        });
+        return this;
+    },
+    get: function (item) {
+        // Create an item only on actual need (when requested for the first time) and then cache it
+        if (!this._cache.hasOwnProperty(item)) {
+            this._cache[item] = this.create(item);
         }
-        return this._cache[color];
+        return this._cache[item];
+    },
+    renew: function (item) {
+        // Delete an item from cache.
+        // Next time the item will be requested via `.get()`, its actual value will be stored in cache again
+        delete this._cache[item];
     }
 };
-Object.defineProperty(view.colors, "_cache", {value: {}});
 
-view.presets = {
-    C: {color: 0xFF0000, radius: 1},
-    H: {color: 0xFFFFFF, radius: 0.7}
-};
-Object.defineProperty(view.presets, "_def", {
-    configurable: true,
-    enumerable: false,
-    writable: false,
-    value: Object.freeze(JSON.parse(JSON.stringify(view.presets.H)))
+
+view.colors = Object.create(cacheProto).init(function (color) {
+    return new THREE.Color(color);
 });
 
-view.atomMaterials = {
-    get: function (atom) {
-        var preset = view.presets[atom] || view.presets[atom = "_def"];
-        // Create an instance only on actual need (when requested for the first time) and then cache it
-        if (!this._cache.hasOwnProperty(atom)) {
-            this._cache[atom] = new THREE.MeshLambertMaterial({color: preset.color});
-        }
-        return this._cache[atom];
-    }
-};
-Object.defineProperty(view.atomMaterials, "_cache", {value: {}});
 
-view.atomGeometries = {
-    get: function (atom) {
-        var preset = view.presets[atom] || view.presets[atom = "_def"];
-        // Create an instance only on actual need (when requested for the first time) and then cache it
-        if (!this._cache.hasOwnProperty(atom)) {
-            this._cache[atom] = new THREE.SphereGeometry(preset.radius);
+view.presets = (function () {
+    var _def = Object.freeze({color: 0xFFFFFF, radius: 1});
+    return Object.create({
+        get: function (el) {
+            return (this.hasOwnProperty(el)) ? this[el] : _def;
+        },
+        set: function (el, value) {
+            if (!this.hasOwnProperty(el)) {
+                this[el] = _.clone(_def);
+            }
+            _.extend(this[el], value);
         }
-        return this._cache[atom];
-    }
-};
-Object.defineProperty(view.atomGeometries, "_cache", {value: {}});
+    });
+})();
 
-view.bondMaterials = {
-    basic: new THREE.LineBasicMaterial({
-        vertexColors: THREE.VertexColors
-    }),
-    extra: new THREE.LineDashedMaterial({
-        dashSize: 0.2,
-        gapSize: 0.1,
-        vertexColors: THREE.VertexColors
-    })
-};
+view.presets.set("C", {color: 0xFF0000});
+view.presets.set("H", {radius: 0.7});
+
+
+view.pointMaterials = Object.create(cacheProto).init(function (atom) {
+    var preset = view.presets.get(atom);
+    return new THREE.PointsMaterial({color: preset.color, sizeAttenuation: false});
+});
+
+view.atomMaterials = Object.create(cacheProto).init(function (atom) {
+    var preset = view.presets.get(atom);
+    return new THREE.MeshLambertMaterial({color: preset.color});
+});
+
+view.atomGeometries = Object.create(cacheProto).init(function (atom) {
+    var preset = view.presets.get(atom);
+    return new THREE.SphereGeometry(preset.radius);
+});
+
+view.bondMaterials = Object.create(cacheProto).init(function (type) {
+    // There are only 2 graph types: "basic" and "extra", however construction of bond materials through `cacheProto`
+    // has an advantage of lazy instantiation of complex objects (instances will be created only on actual need)
+    if (type === "extra") {
+        return new THREE.LineDashedMaterial({dashSize: 0.2, gapSize: 0.1, vertexColors: THREE.VertexColors});
+    } else { // type === "basic"
+        return new THREE.LineBasicMaterial({vertexColors: THREE.VertexColors});
+    }
+});
+
 
 view.THREE = (function () {
     var three, spotLight;
@@ -83,7 +99,7 @@ view.THREE = (function () {
 
     spotLight = new THREE.SpotLight(0xFFFFFF);
     spotLight.position.set(-40, 60, 50);
-    three.scene.add(spotLight, new THREE.AxisHelper(20));
+    three.scene.add(spotLight);
 
     three.camera.position.x = 0;
     three.camera.position.y = 0;
@@ -122,7 +138,7 @@ view.update = function () {
 };
 
 view.getAtomColor = function (el) {
-    return (this.presets[el] || this.presets._def).color;
+    return this.presets.get(el).color;
 };
 
 view.setAtomColors = function (colors) {
@@ -130,12 +146,10 @@ view.setAtomColors = function (colors) {
         el;
     for (el in colors) {
         if (colors.hasOwnProperty(el) && (this.getAtomColor(el) !== colors[el])) {
-            if (!presets[el]) {
-                presets[el] = JSON.parse(JSON.stringify(presets._def));
-            }
-            presets[el].color = colors[el];
-            // Sphere materials (and colors) are cached. Clearing cache forces colors to update
-            delete this.atomMaterials._cache[el];
+            presets.set(el, {color: colors[el]});
+            // Sphere and point materials (and colors) are cached. Forces colors to update
+            this.atomMaterials.renew(el);
+            this.pointMaterials.renew(el);
         }
     }
 };
@@ -161,8 +175,10 @@ view.resetScene = function () {
     view.clearScene();
     if (view.appearance === "spheres") {
         view.addSceneAtoms();
-    } else {
+    } else if (OE.structure.bonds.length) {
         view.addSceneBonds();
+    } else {
+        view.addScenePoints();
     }
 };
 
@@ -172,9 +188,8 @@ view.addSceneAtoms = function () {
         atomGeometries = view.atomGeometries,
         atomMaterials = view.atomMaterials,
         atoms = OE.structure.atoms,
-        atomCount = atoms.length,
-        i, atom;
-    for (i = 0; i < atomCount; i++) {
+        i, atomCount, atom;
+    for (i = 0, atomCount = atoms.length; i < atomCount; i++) {
         atom = new Mesh(atomGeometries.get(atoms[i].el), atomMaterials.get(atoms[i].el));
         atom.position.x = atoms[i].x;
         atom.position.y = atoms[i].y;
@@ -185,29 +200,77 @@ view.addSceneAtoms = function () {
 
 view.addSceneBonds = function () {
     var Line = THREE.Line,
+        Points = THREE.Points,
         Vector3 = THREE.Vector3,
         group = view.THREE.group,
         presets = view.presets,
         colors = view.colors,
         bondMaterials = view.bondMaterials,
+        pointMaterials = view.pointMaterials,
         atoms = OE.structure.atoms,
         bonds = OE.structure.bonds,
-        bondCount = bonds.length,
-        i, atom, bondGeometry;
-    for (i = 0; i < bondCount; i++) {
+        bindMap = new Int8Array(atoms.length),
+        i, bondCount, iAtm, jAtm, atom,
+        bondGeometry, pointGeometry;
+    for (i = 0, bondCount = bonds.length; i < bondCount; i++) {
+        iAtm = bonds[i].iAtm;
+        jAtm = bonds[i].jAtm;
+        bindMap[iAtm] = bindMap[jAtm] = 1;
         bondGeometry = new THREE.Geometry();
-        atom = atoms[bonds[i].iAtm];
+        atom = atoms[iAtm];
         bondGeometry.vertices.push(new Vector3(atom.x, atom.y, atom.z));
-        bondGeometry.colors.push(colors.get((presets[atom.el] || presets._def).color));
-        atom = atoms[bonds[i].jAtm];
+        bondGeometry.colors.push(colors.get(presets.get(atom.el).color));
+        atom = atoms[jAtm];
         bondGeometry.vertices.push(new Vector3(atom.x, atom.y, atom.z));
-        bondGeometry.colors.push(colors.get((presets[atom.el] || presets._def).color));
+        bondGeometry.colors.push(colors.get(presets.get(atom.el).color));
         if (bonds[i].type === "x") {
             bondGeometry.computeLineDistances();
-            group.add(new Line(bondGeometry, bondMaterials.extra, THREE.LineStrip));
+            group.add(new Line(bondGeometry, bondMaterials.get("extra"), THREE.LineStrip));
         } else {
-            group.add(new Line(bondGeometry, bondMaterials.basic));
+            group.add(new Line(bondGeometry, bondMaterials.get("basic")));
         }
+    }
+
+    // Draw points for unbound atoms (if any)
+    i = bindMap.indexOf(0);
+    while (i !== -1) {
+        pointGeometry = new THREE.Geometry();
+        atom = atoms[i];
+        pointGeometry.vertices.push(new Vector3(atom.x, atom.y, atom.z));
+        group.add(new Points(pointGeometry, pointMaterials.get(atom.el)));
+        i = bindMap.indexOf(0, i + 1);
+    }
+};
+
+view.addScenePoints = function () {
+    var Points = THREE.Points,
+        Vector3 = THREE.Vector3,
+        group = view.THREE.group,
+        pointMaterials = view.pointMaterials,
+        atoms = OE.structure.atoms,
+        pointGeometry,
+        i, atomCount, atom;
+    for (i = 0, atomCount = atoms.length; i < atomCount; i++) {
+        pointGeometry = new THREE.Geometry();
+        atom = atoms[i];
+        pointGeometry.vertices.push(new Vector3(atom.x, atom.y, atom.z));
+        group.add(new Points(pointGeometry, pointMaterials.get(atom.el)));
+    }
+};
+
+view.addAxes = function () {
+    if (!view.axes) {
+        view.axes = new THREE.AxisHelper(20);
+        view.THREE.scene.add(view.axes);
+        view.update();
+    }
+};
+
+view.removeAxes = function () {
+    if (view.axes) {
+        view.THREE.scene.remove(view.axes);
+        delete view.axes;
+        view.update();
     }
 };
 

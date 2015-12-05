@@ -438,7 +438,13 @@ ui.transform = (_.extend(Object.create(ui.abstractDialog), {
         this.$el.find(".oe-translate input[data-axis]").val(function () {
             return center[$(this).data("axis")].toFixed(5);
         });
+        OE.view.addAxes();
         return ui.abstractDialog.show.apply(this, arguments);
+    },
+
+    hide: function () {
+        OE.view.removeAxes();
+        return ui.abstractDialog.hide.apply(this, arguments);
     }
 })).init();
 

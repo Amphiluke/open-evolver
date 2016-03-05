@@ -27,3 +27,8 @@ node_modules
 # Storage
 store/*
 !store/README.md
+
+# Generated files
+dev/src/js/compiled/*.js
+vendor/*
+!vendor/README.md

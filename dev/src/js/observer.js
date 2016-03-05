@@ -1,61 +1,63 @@
-(function (global) {
+const handlerRegistry = new WeakMap();
 
-"use strict";
-
-var OE = global.OE || (global.OE = {}),
-    observer = OE.observer = {},
-    handlers = {},
-    uid = 0;
-
-function getObserverHandlers(instance) {
-    var id = instance._oid;
-    if (!handlers[id]) {
-        id = ++uid;
-        Object.defineProperty(instance, "_oid", {value: id});
-        handlers[id] = {};
+class Observer {
+    constructor() {
+        handlerRegistry.set(this, new Map());
     }
-    return handlers[id];
-}
 
-observer.on = function (event, handler) {
-    var handlers = getObserverHandlers(this);
-    if (!handlers[event]) {
-        handlers[event] = [];
+    // These static methods make the Observer class itself implement the Observer interface.
+    // This may be used for broadcast messaging with the Observer object as a target
+    static on(...params) {
+        return Observer.prototype.on.apply(Observer, params);
     }
-    handlers[event].push(handler);
-};
 
-observer.off = function (event, handler) {
-    var handlers = getObserverHandlers(this),
-        handlerIndex;
-    if (!handlers[event]) {
-        return;
+    static off(...params) {
+        return Observer.prototype.off.apply(Observer, params);
     }
-    if (handler) {
-        handlerIndex = handlers[event].indexOf(handler);
-        if (handlerIndex > -1) {
-            handlers[event].splice(handlerIndex, 1);
-            if (handlers[event].length === 0) {
-                delete handlers[event];
+
+    static trigger(...params) {
+        return Observer.prototype.trigger.apply(Observer, params);
+    }
+
+    on(event, handler) {
+        let handlers = handlerRegistry.get(this);
+        if (!handlers.has(event)) {
+            handlers.set(event, []);
+        }
+        handlers.get(event).push(handler);
+    }
+
+    off(event, handler) {
+        let handlers = handlerRegistry.get(this);
+        if (!handlers.has(event)) {
+            return;
+        }
+        if (handler) {
+            let eventHandlers = handlers.get(event);
+            let handlerIndex = eventHandlers.indexOf(handler);
+            if (handlerIndex > -1) {
+                eventHandlers.splice(handlerIndex, 1);
+                if (eventHandlers.length === 0) {
+                    handlers.delete(event);
+                }
+            }
+        } else {
+            handlers.get(event).length = 0;
+            handlers.delete(event);
+        }
+    }
+
+    trigger(event, ...params) {
+        let handlers = handlerRegistry.get(this);
+        if (handlers.has(event)) {
+            for (let handler of handlers.get(event)) {
+                handler.apply(null, params);
             }
         }
-    } else {
-        handlers[event].length = 0;
-        delete handlers[event];
     }
-};
+}
 
-observer.trigger = function (event) {
-    var handlers = getObserverHandlers(this),
-        args,
-        i, len;
-    if (!handlers[event]) {
-        return;
-    }
-    args = Array.prototype.slice.call(arguments, 1);
-    for (i = 0, len = handlers[event].length; i < len; i++) {
-        handlers[event][i].apply(null, args);
-    }
-};
+// Observer class itself implements the Observer interface (this is instead of the constructor call)
+handlerRegistry.set(Observer, new Map());
 
-})(this);
+export default Observer;

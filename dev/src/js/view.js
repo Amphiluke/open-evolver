@@ -1,81 +1,52 @@
-(function (global) {
+import THREE from "three";
+import Cacheable from "./cacheable.js";
 
-"use strict";
-
-var _ = global._,
-    THREE = global.THREE,
-    OE = global.OE || (global.OE = {}),
-    view = OE.view = {},
+let view = {},
     canvas = {
         el: null,
         width: 600,
         height: 500
     };
 
-var cacheProto = {
-    init: function (createFn) {
-        Object.defineProperties(this, {
-            _cache: {value: {}},
-            create: {configurable: true, value: createFn}
-        });
-        return this;
+
+view.colors = new Cacheable(color => new THREE.Color(color));
+
+view.presets = Object.create({
+    get(el) {
+        return this.hasOwnProperty(el) ? this[el] : this._def;
     },
-    get: function (item) {
-        // Create an item only on actual need (when requested for the first time) and then cache it
-        if (!this._cache.hasOwnProperty(item)) {
-            this._cache[item] = this.create(item);
+    set(el, value) {
+        if (this.hasOwnProperty(el)) {
+            Object.assign(this[el], value);
+        } else {
+            this[el] = Object.assign({}, this._def, value);
         }
-        return this._cache[item];
-    },
-    renew: function (item) {
-        // Delete an item from cache.
-        // Next time the item will be requested via `.get()`, its actual value will be stored in cache again
-        delete this._cache[item];
     }
-};
-
-
-view.colors = Object.create(cacheProto).init(function (color) {
-    return new THREE.Color(color);
+}, {
+    _def: {value: Object.freeze({color: 0xFFFFFF, radius: 1})}
 });
-
-
-view.presets = (function () {
-    var _def = Object.freeze({color: 0xFFFFFF, radius: 1});
-    return Object.create({
-        get: function (el) {
-            return (this.hasOwnProperty(el)) ? this[el] : _def;
-        },
-        set: function (el, value) {
-            if (!this.hasOwnProperty(el)) {
-                this[el] = _.clone(_def);
-            }
-            _.extend(this[el], value);
-        }
-    });
-})();
 
 view.presets.set("C", {color: 0xFF0000});
 view.presets.set("H", {radius: 0.7});
 
 
-view.pointMaterials = Object.create(cacheProto).init(function (atom) {
-    var preset = view.presets.get(atom);
+view.pointMaterials = new Cacheable(atom => {
+    let preset = view.presets.get(atom);
     return new THREE.PointsMaterial({color: preset.color, sizeAttenuation: false});
 });
 
-view.atomMaterials = Object.create(cacheProto).init(function (atom) {
-    var preset = view.presets.get(atom);
+view.atomMaterials = new Cacheable(atom => {
+    let preset = view.presets.get(atom);
     return new THREE.MeshLambertMaterial({color: preset.color});
 });
 
-view.atomGeometries = Object.create(cacheProto).init(function (atom) {
-    var preset = view.presets.get(atom);
+view.atomGeometries = new Cacheable(atom => {
+    let preset = view.presets.get(atom);
     return new THREE.SphereGeometry(preset.radius);
 });
 
-view.bondMaterials = Object.create(cacheProto).init(function (type) {
-    // There are only 2 graph types: "basic" and "extra", however construction of bond materials through `cacheProto`
+view.bondMaterials = new Cacheable(type => {
+    // There are only 2 graph types: "basic" and "extra", however construction of bond materials through `Cacheable`
     // has an advantage of lazy instantiation of complex objects (instances will be created only on actual need)
     if (type === "extra") {
         return new THREE.LineDashedMaterial({dashSize: 0.2, gapSize: 0.1, vertexColors: THREE.VertexColors});
@@ -110,12 +81,12 @@ view.THREE = (function () {
     three.renderer.setSize(canvas.width, canvas.height);
     three.renderer.render(three.scene, three.camera);
 
-    document.getElementById("oe-view").appendChild(canvas.el);
+    document.getElementById("oe-view").appendChild(canvas.el); // TODO!
     return three;
 })();
 
 view.zoom = function (delta) {
-    var three = view.THREE;
+    let three = view.THREE;
     three.camera.position.z += delta;
     three.camera.lookAt(three.scene.position);
     view.update();
@@ -129,27 +100,27 @@ view.render = function () {
 view.rotation = 0;
 
 view.update = function () {
-    var group = view.THREE.group;
+    let three = view.THREE,
+        group = three.group;
     group.rotation.y += (view.rotation - group.rotation.y) * 0.05;
-    view.THREE.renderer.render(view.THREE.scene, view.THREE.camera);
+    three.renderer.render(three.scene, three.camera);
     if (view.autoUpdate) {
         requestAnimationFrame(view.update);
     }
 };
 
 view.getAtomColor = function (el) {
-    return this.presets.get(el).color;
+    return view.presets.get(el).color;
 };
 
 view.setAtomColors = function (colors) {
-    var presets = this.presets,
-        el;
-    for (el in colors) {
-        if (colors.hasOwnProperty(el) && (this.getAtomColor(el) !== colors[el])) {
+    let presets = view.presets;
+    for (let el of Object.keys(colors)) {
+        if (view.getAtomColor(el) !== colors[el]) {
             presets.set(el, {color: colors[el]});
             // Sphere and point materials (and colors) are cached. Forces colors to update
-            this.atomMaterials.renew(el);
-            this.pointMaterials.renew(el);
+            view.atomMaterials.renew(el);
+            view.pointMaterials.renew(el);
         }
     }
 };
@@ -158,11 +129,11 @@ view.setBgColor = function (color) {
     if (typeof color === "string") {
         color = parseInt(color.replace("#", ""), 16);
     }
-    this.THREE.renderer.setClearColor(color);
+    view.THREE.renderer.setClearColor(color);
 };
 
 view.clearScene = function () {
-    var group = view.THREE.group,
+    let group = view.THREE.group,
         child;
     while (child = group.children[0]) {
         group.remove(child);
@@ -273,5 +244,3 @@ view.removeAxes = function () {
         view.update();
     }
 };
-
-})(this);

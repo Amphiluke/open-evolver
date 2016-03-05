@@ -1,37 +1,31 @@
-(function (global) {
+import Observer from "./observer.js";
+import app from "./app.js";
 
-"use strict";
+const calcWorker = new Worker("src/js/calc.js");
 
-var OE = global.OE,
-    app = OE.app,
-    worker = OE.worker = Object.create(OE.observer),
-    calcWorker = new global.Worker("src/js/calc.js"),
-    blockingMethod = null;
+let blockingMethod = null;
 
-
-worker.invoke = function (method, data) {
-    blockingMethod = method;
-    // Note that every worker invocation turns the application into busy state, so be sure to
-    // set the desired application state either just before the worker invocation, or after
-    // the invoked worker method finishes, but not between these two events
-    app.state = app.BUSY;
-    calcWorker.postMessage({method: method, data: data});
-};
-
-
-calcWorker.addEventListener("error", function (e) {
-    throw e;
+const worker = Object.defineProperties(new Observer(), {
+    invoke: {
+        value(method, data) {
+            blockingMethod = method;
+            app.busy = true; // note that every worker invocation turns the application into busy state
+            calcWorker.postMessage({method, data});
+        }
+    }
 });
 
-calcWorker.addEventListener("message", function (e) {
-    var method = e.data && e.data.method;
+calcWorker.addEventListener("error", e => {throw e;});
+
+calcWorker.addEventListener("message", e => {
+    const method = e.data && e.data.method;
     if (method) {
         if (method === blockingMethod) {
-            app.state = app.IDLE;
+            app.busy = false;
             blockingMethod = null;
         }
         worker.trigger(method, e.data.data);
     }
 });
 
-})(this);
+export default worker;

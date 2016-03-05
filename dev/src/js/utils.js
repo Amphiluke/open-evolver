@@ -1,13 +1,4 @@
-(function (global) {
-
-"use strict";
-
-var OE = global.OE || (global.OE = {}),
-    utils = OE.utils = {},
-    atomicMasses;
-
-
-atomicMasses = {
+const atomicMasses = {
     H: 1.00794,
     He: 4.002602,
     Li: 6.941,
@@ -119,26 +110,22 @@ atomicMasses = {
     Mt: 266
 };
 
+export default {
+    atomicMasses: Object.freeze(atomicMasses),
 
-utils.getAtomicMass = function (element) {
-    return atomicMasses[element];
-};
-
-/**
- * Calculate reduced mass for a given pair of atoms
- * @param {String} pair A pair of element labels, e.g. "ZnO".
- * Extra-graph pairs ("x-" prefixed) are also acceptable.
- * @returns {Number}
- */
-utils.getReducedMass = function (pair) {
-    var elements = pair.match(/[A-Z][^A-Z]*/g),
-        mass1, mass2;
-    if (!elements) {
-        throw new Error("Cannot extract element labels from string " + pair);
+    /**
+     * Calculate reduced mass for a given pair of atoms
+     * @param {String} pair A pair of element labels, e.g. "ZnO".
+     * Extra-graph pairs ("x-" prefixed) are also acceptable.
+     * @returns {Number}
+     */
+    getReducedMass(pair) {
+        let elements = pair.match(/[A-Z][^A-Z]*/g);
+        if (!elements) {
+            throw new Error(`Cannot extract element labels from string ${pair}`);
+        }
+        const mass1 = atomicMasses[elements[0]];
+        const mass2 = atomicMasses[elements[1]];
+        return mass1 * mass2 / (mass1 + mass2);
     }
-    mass1 = utils.getAtomicMass(elements[0]);
-    mass2 = utils.getAtomicMass(elements[1]);
-    return mass1 * mass2 / (mass1 + mass2);
 };
-
-})(this);

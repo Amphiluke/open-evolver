@@ -226,7 +226,7 @@ fileAPI.makeXYZ = function () {
  * @param {String|Object} ref File reference - either a path, or a file object (or Blob)
  * @param {Function} cb A callback function to be invoked after the file is read
  */
-fileAPI.readFile = function (ref, cb) {
+fileAPI.readFile = function (ref, cb) { // TODO: return Promise
     var xhr, reader;
     if (typeof ref === "string") { // file path was passed
         xhr = new XMLHttpRequest();

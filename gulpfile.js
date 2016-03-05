@@ -1,11 +1,32 @@
 "use strict";
 
-var gulp = require("gulp"),
-    useref = require("gulp-useref"),
-    uglify = require("gulp-uglify"),
-    files2JSON = require("gulp-files-to-json");
+let gulp = require("gulp"),
+    babel = require("gulp-babel");
+    //uglify = require("gulp-uglify"),
+    //files2JSON = require("gulp-files-to-json");
 
-gulp.task("html", function () {
+gulp.task("dependencies", () => {
+    let deps = [
+        "node_modules/jquery/dist/jquery.min.js",
+        "node_modules/systemjs/dist/system.js",
+        "node_modules/three/three.min.js",
+        "node_modules/underscore/underscore-min.js",
+        "node_modules/normalize.css/normalize.css"
+    ];
+    return gulp.src(deps).pipe(gulp.dest("vendor"));
+});
+
+gulp.task("transpile", () => {
+    return gulp.src(["dev/src/js/**/*.js", "!dev/src/js/compiled/*"])
+        .pipe(babel())
+        .pipe(gulp.dest("dev/src/js/compiled"));
+});
+
+gulp.task("prepare", ["dependencies", "transpile"]);
+
+
+
+/*gulp.task("html", function () {
     var assets = useref.assets();
     return gulp.src("./dev/index.html")
         .pipe(assets)
@@ -27,7 +48,7 @@ gulp.task("styles", function () {
 });
 
 gulp.task("images", function () {
-    return gulp.src("./dev/src/img/**/*")
+    return gulp.src("./dev/src/img/** /*")
         .pipe(gulp.dest("./build/src/img"));
 });
 
@@ -38,4 +59,4 @@ gulp.task("tpl", function () {
         .pipe(gulp.dest("./build/src/tpl/"));
 });
 
-gulp.task("default", ["html", "detachedScripts", "styles", "images", "tpl"]);
+gulp.task("default", ["html", "detachedScripts", "styles", "images", "tpl"]);*/

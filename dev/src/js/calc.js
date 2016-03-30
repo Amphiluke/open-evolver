@@ -1,435 +1,439 @@
-(function (global) {
-
 "use strict";
 
-var api = {},
-    core = {},
-    structure = null,
-    tightBondCount = 0,
-    grad = {},
-    rndGrad = {},
-    log = {};
+let structure = null,
+    tightBondCount = 0;
 
+let atomicMasses = {};
 
-global.importScripts("utils.js"); // will add `OE.utils` into the global context of the worker
-
-api.setStructure = function (data) {
-    var bonds = data.bonds,
-        bondCount = bonds.length,
-        i, j;
-    // Move all existing extra-bonds to the end of a bond array.
-    // This allows to speed up iterations through bonds of extra-graph
-    for (i = 0, j = 0; i < bondCount; i++) {
-        if (bonds[j].type === "x") {
-            bonds.push(bonds.splice(j, 1)[0]);
-        } else {
-            j++;
-        }
+let xhr = new XMLHttpRequest();
+xhr.open("GET", "../lib.json", true);
+xhr.addEventListener("load", () => {
+    if (xhr.status === 200) {
+        let lib = JSON.parse(xhr.responseText);
+        atomicMasses = lib.atomicMasses;
+        self.postMessage({method: "ready"});
     }
-    tightBondCount = j;
-    structure = data;
-    return structure;
-};
+}, false);
+xhr.send(null);
 
-api.updateStructure = function () {
-    global.postMessage({method: "updateStructure", data: structure});
-};
 
-api.totalEnergy = function () {
-    return core.totalEnergy();
-};
-
-api.gradient = function () {
-    grad.alloc();
-    core.gradient();
-    grad.dispose();
-    return core.norm;
-};
-
-api.evolve = function (data) {
-    core.evolveParams = data;
-    core.evolve();
-    api.updateStructure();
-    return {energy: core.totalEnergy(), norm: core.norm};
-};
-
-api.reconnectPairs = function (data) {
-    var elements = data.pair.match(/[A-Z][^A-Z]*/g),
-        cutoff2 = data.cutoff * data.cutoff,
-        atoms = structure.atoms,
-        aLen = atoms.length,
-        bonds = structure.bonds,
-        bond, bLen,
-        i, j, k,
-        jEl;
-    for (i = 0; i < aLen; i++) {
-        if (atoms[i].el === elements[0]) {
-            jEl = elements[1];
-        } else if (atoms[i].el === elements[1]) {
-            jEl = elements[0];
-        } else {
-            continue;
+let api = {
+    setStructure(data) {
+        let j = 0;
+        // Move all existing extra-bonds to the end of a bond array.
+        // This allows to speed up iterations through bonds of extra-graph
+        for (let i = 0, bonds = data.bonds, bondCount = bonds.length; i < bondCount; i++) {
+            if (bonds[j].type === "x") {
+                bonds.push(bonds.splice(j, 1)[0]);
+            } else {
+                j++;
+            }
         }
-        for (j = i + 1; j < aLen; j++) {
-            if (atoms[j].el === jEl) {
-                for (k = tightBondCount, bond = bonds[k], bLen = bonds.length; k < bLen; bond = bonds[++k]) {
-                    if ((bond.iAtm === i && bond.jAtm === j) || (bond.iAtm === j && bond.jAtm === i)) {
-                        break;
+        for (let [pair, params] of data.potentials) {
+            params.b = core.stiffness(params.w0, params.D0, core.reducedMass(pair));
+        }
+        tightBondCount = j;
+        structure = data;
+        return structure;
+    },
+
+    updateStructure() {
+        self.postMessage({method: "updateStructure", data: structure});
+    },
+
+    totalEnergy() {
+        return core.totalEnergy();
+    },
+
+    gradient() {
+        grad.alloc();
+        core.gradient();
+        grad.dispose();
+        return core.norm;
+    },
+
+    evolve(data) {
+        core.evolveParams = data;
+        core.evolve();
+        this.updateStructure();
+        return {energy: core.totalEnergy(), norm: core.norm};
+    },
+
+    reconnectPairs(data) {
+        let [el1, el2] = data.pair.match(/[A-Z][^A-Z]*/g),
+            cutoff2 = data.cutoff * data.cutoff,
+            {atoms, bonds} = structure;
+        for (let i = 0, aLen = atoms.length; i < aLen; i++) {
+            let jEl;
+            if (atoms[i].el === el1) {
+                jEl = el2;
+            } else if (atoms[i].el === el2) {
+                jEl = el1;
+            } else {
+                continue;
+            }
+            for (let j = i + 1; j < aLen; j++) {
+                if (atoms[j].el === jEl) {
+                    let k, bond, bLen;
+                    for (k = tightBondCount, bond = bonds[k], bLen = bonds.length; k < bLen; bond = bonds[++k]) {
+                        if ((bond.iAtm === i && bond.jAtm === j) || (bond.iAtm === j && bond.jAtm === i)) {
+                            break;
+                        }
                     }
-                }
-                if (core.sqrDistance(i, j) > cutoff2) {
-                    if (bond) {
-                        bonds.splice(k, 1); // break x-bond, as the distance is greater than cutoff
+                    if (core.sqrDistance(i, j) > cutoff2) {
+                        if (bond) {
+                            bonds.splice(k, 1); // break x-bond, as the distance is greater than cutoff
+                        }
+                    } else if (!bond) {
+                        bonds.push({iAtm: i, jAtm: j, type: "x"}); // create x-bond, as one doesn't exist yet
                     }
-                } else if (!bond) {
-                    bonds.push({iAtm: i, jAtm: j, type: "x"}); // create x-bond, as one isn't exist yet
                 }
             }
         }
-    }
-    api.updateStructure();
-};
+        this.updateStructure();
+    },
 
-api.collectStats = function () {
-    var atoms = structure.atoms,
-        bonds = structure.bonds,
-        data = {},
-        i, len,
-        prefix, pair,
-        distance;
+    collectStats() {
+        let {atoms, bonds} = structure,
+            data = {};
 
-    data.name = structure.name;
-    data.atomCount = len = atoms.length;
-    data.atoms = {};
-    for (i = 0; i < len; i++) {
-        if (data.atoms.hasOwnProperty(atoms[i].el)) {
-            data.atoms[atoms[i].el]++;
-        } else {
-            data.atoms[atoms[i].el] = 1;
+        data.name = structure.name;
+        data.atomCount = atoms.length;
+        data.atoms = new Map();
+        for (let atom of atoms) {
+            let count = data.atoms.get(atom.el);
+            data.atoms.set(atom.el, count ? count + 1 : 1);
         }
-    }
 
-    data.bondCount = len = bonds.length;
-    data.bonds = {};
-    for (i = 0; i < len; i++) {
-        prefix = (bonds[i].type === "x") ? "x-" : "";
-        pair = prefix + atoms[bonds[i].jAtm].el + atoms[bonds[i].iAtm].el;
-        if (!data.bonds.hasOwnProperty(pair)) {
-            pair = prefix + atoms[bonds[i].iAtm].el + atoms[bonds[i].jAtm].el;
-            if (!data.bonds.hasOwnProperty(pair)) {
-                data.bonds[pair] = {count: 0, avgLen: 0, avgEnergy: 0, totEnergy: 0};
+        data.bondCount = bonds.length;
+        data.bonds = new Map();
+        for (let bond of bonds) {
+            let prefix = (bond.type === "x") ? "x-" : "";
+            let pair = prefix + atoms[bond.jAtm].el + atoms[bond.iAtm].el;
+            if (!data.bonds.has(pair)) {
+                pair = prefix + atoms[bond.iAtm].el + atoms[bond.jAtm].el;
+                if (!data.bonds.has(pair)) {
+                    data.bonds.set(pair, {count: 0, avgLen: 0, avgEnergy: 0, totEnergy: 0});
+                }
             }
+            let distance = core.distance(bond.iAtm, bond.jAtm);
+            let bondData = data.bonds.get(pair);
+            bondData.count++;
+            bondData.avgLen += distance;
+            bondData.totEnergy += core.morse(bond.potential, distance);
         }
-        distance = core.distance(bonds[i].iAtm, bonds[i].jAtm);
-        data.bonds[pair].count++;
-        data.bonds[pair].avgLen += distance;
-        data.bonds[pair].totEnergy += core.morse(bonds[i].potential, distance);
-    }
-    for (pair in data.bonds) {
-        if (data.bonds.hasOwnProperty(pair)) {
-            data.bonds[pair].avgLen /= data.bonds[pair].count;
-            data.bonds[pair].avgEnergy = data.bonds[pair].totEnergy / data.bonds[pair].count;
+        for (let [, bondData] of data.bonds) {
+            bondData.avgLen /= bondData.count;
+            bondData.avgEnergy = bondData.totEnergy / bondData.count;
         }
-    }
 
-    data.potentials = structure.potentials;
-    data.totalEnergy = core.totalEnergy();
-    return data;
+        data.potentials = structure.potentials;
+        data.totalEnergy = core.totalEnergy();
+        return data;
+    }
 };
 
-
-global.onmessage = function (e) {
-    var method = e.data && e.data.method;
+self.onmessage = function (e) {
+    let method = e.data && e.data.method;
     if (typeof api[method] === "function") {
-        global.postMessage({
-            method: method,
-            data: api[method].call(api, e.data.data)
+        self.postMessage({
+            method,
+            data: api[method](e.data.data)
         });
     }
 };
 
 
-grad.alloc = rndGrad.alloc = function () {
-    var atomCount = structure.atoms.length;
-    this.x = new Float32Array(atomCount);
-    this.y = new Float32Array(atomCount);
-    this.z = new Float32Array(atomCount);
-};
-grad.dispose = rndGrad.dispose = function () {
-    this.x = this.y = this.z = null;
-};
+let grad = {
+    alloc() {
+        let atomCount = structure.atoms.length;
+        this.x = new Float32Array(atomCount);
+        this.y = new Float32Array(atomCount);
+        this.z = new Float32Array(atomCount);
+    },
 
-
-log.alloc = function (size) {
-    this.data = {
-        E: new Float32Array(size),
-        grad: new Float32Array(size),
-        dt: new Float32Array(size)
-    };
-};
-log.dispose = function () {
-    this.data = null;
-};
-log.write = function (index) {
-    var data = this.data;
-    data.E[index] = core.totalEnergy();
-    data.grad[index] = core.norm;
-    data.dt[index] = core.timeStep();
-};
-
-
-/**
- * In intensive calculations use this method for comparisons rather than `core.distance`
- */
-core.sqrDistance = function (atom1, atom2) {
-    var at1 = structure.atoms[atom1],
-        at2 = structure.atoms[atom2],
-        dx = at1.x - at2.x,
-        dy = at1.y - at2.y,
-        dz = at1.z - at2.z;
-    return dx * dx + dy * dy + dz * dz;
-};
-
-core.distance = function (atom1, atom2) {
-    return Math.sqrt(core.sqrDistance(atom1, atom2));
-};
-
-core.morse = function (params, distance) {
-    var exponent = Math.exp(params.b * (params.R0 - distance));
-    return params.D0 * exponent * (exponent - 2);
-};
-
-core.derivative = function (params, distance) {
-    var cA = params.D0 * Math.exp(2 * params.b * params.R0),
-        cB = -2 * params.b,
-        cC = -2 * Math.sqrt(params.D0 * cA),
-        cD = Math.exp(-params.b * distance);
-    return cB * cD * (cA * cD + 0.5 * cC);
-};
-
-core.gradComponent = function (atom1, atom2, bond) {
-    var distance = core.distance(atom1, atom2),
-        factor = core.derivative(structure.bonds[bond].potential, distance) / distance,
-        at1 = structure.atoms[atom1],
-        at2 = structure.atoms[atom2];
-    return {
-        x: factor * (at1.x - at2.x),
-        y: factor * (at1.y - at2.y),
-        z: factor * (at1.z - at2.z)
-    };
-};
-
-core.totalEnergy = function () {
-    var energy = 0,
-        bonds = structure.bonds,
-        i, len;
-    for (i = 0, len = bonds.length; i < len; i++) {
-        energy += core.morse(bonds[i].potential, core.distance(bonds[i].iAtm, bonds[i].jAtm));
+    dispose() {
+        this.x = this.y = this.z = null;
     }
-    return energy;
+};
+let rndGrad = Object.assign({}, grad);
+
+
+let log = {
+    alloc(size) {
+        this.data = {
+            E: new Float32Array(size),
+            grad: new Float32Array(size),
+            dt: new Float32Array(size)
+        };
+    },
+
+    dispose() {
+        this.data = null;
+    },
+
+    write(index) {
+        let data = this.data;
+        data.E[index] = core.totalEnergy();
+        data.grad[index] = core.norm;
+        data.dt[index] = core.timeStep();
+    }
 };
 
-core.gradient = function () {
-    var atoms = structure.atoms,
-        atomCount = atoms.length,
-        bonds = structure.bonds,
-        bondCount = bonds.length,
-        utils = global.OE.utils,
-        gradComponent,
-        sqrForce, invNorm,
-        i, j, b,
-        mass;
 
-    core.norm = core.sumSqr = core.rootSumSqr = 0;
+let core = {
+    /**
+     * Calculate reduced mass for a given pair of atoms
+     * @param {String} pair A pair of element labels, e.g. "ZnO".
+     * Extra-graph pairs ("x-" prefixed) are also acceptable.
+     * @returns {Number}
+     */
+    reducedMass(pair) {
+        let elements = pair.match(/[A-Z][^A-Z]*/g);
+        if (!elements) {
+            throw new Error(`Cannot extract element labels from string ${pair}`);
+        }
+        const mass1 = atomicMasses[elements[0]];
+        const mass2 = atomicMasses[elements[1]];
+        return mass1 * mass2 / (mass1 + mass2);
+    },
+    
+    stiffness(w0, D0, m) {
+        // b{1/Å} = w0{1/cm} * 2*pi*c{cm/s} * sqrt[µ{a.m.u.}*1.6605655E-27 / (2*D0{eV}*1.6021892E-19)] / 1E+10
+        // i.e.
+        // b{1/Å} = w0{1/cm} * sqrt[µ{a.m.u.} / D0{eV}] * 1.3559906E-3
+        return w0 * Math.sqrt(m / D0) * 1.3559906E-3;
+    },
 
-    for (i = 0; i < atomCount; i++) {
-        grad.x[i] = grad.y[i] = grad.z[i] = 0;
-        for (b = 0; b < bondCount; b++) {
-            if (bonds[b].iAtm === i) {
-                j = bonds[b].jAtm;
-            } else if (bonds[b].jAtm === i) {
-                j = bonds[b].iAtm;
-            } else {
-                continue;
+    // In intensive calculations use this method for comparisons rather than `core.distance`
+    sqrDistance(atom1, atom2) {
+        let at1 = structure.atoms[atom1],
+            at2 = structure.atoms[atom2],
+            dx = at1.x - at2.x,
+            dy = at1.y - at2.y,
+            dz = at1.z - at2.z;
+        return dx * dx + dy * dy + dz * dz;
+    },
+
+    distance(atom1, atom2) {
+        return Math.sqrt(this.sqrDistance(atom1, atom2));
+    },
+
+    morse(params, distance) {
+        let exponent = Math.exp(params.b * (params.R0 - distance));
+        return params.D0 * exponent * (exponent - 2);
+    },
+
+    derivative(params, distance) {
+        let cA = params.D0 * Math.exp(2 * params.b * params.R0),
+            cB = -2 * params.b,
+            cC = -2 * Math.sqrt(params.D0 * cA),
+            cD = Math.exp(-params.b * distance);
+        return cB * cD * (cA * cD + 0.5 * cC);
+    },
+
+    gradComponent(atom1, atom2, bond) {
+        let distance = this.distance(atom1, atom2),
+            factor = this.derivative(structure.bonds[bond].potential, distance) / distance,
+            at1 = structure.atoms[atom1],
+            at2 = structure.atoms[atom2];
+        return {
+            x: factor * (at1.x - at2.x),
+            y: factor * (at1.y - at2.y),
+            z: factor * (at1.z - at2.z)
+        };
+    },
+
+    totalEnergy() {
+        let energy = 0;
+        for (let bond of structure.bonds) {
+            energy += this.morse(bond.potential, this.distance(bond.iAtm, bond.jAtm));
+        }
+        return energy;
+    },
+
+    gradient() {
+        let {atoms, bonds} = structure,
+            atomCount = atoms.length,
+            bondCount = bonds.length;
+
+        this.norm = this.sumSqr = this.rootSumSqr = 0;
+
+        for (let i = 0; i < atomCount; i++) {
+            grad.x[i] = grad.y[i] = grad.z[i] = 0;
+            for (let b = 0; b < bondCount; b++) {
+                let j;
+                if (bonds[b].iAtm === i) {
+                    j = bonds[b].jAtm;
+                } else if (bonds[b].jAtm === i) {
+                    j = bonds[b].iAtm;
+                } else {
+                    continue;
+                }
+                let gradComponent = this.gradComponent(i, j, b);
+                grad.x[i] += gradComponent.x;
+                grad.y[i] += gradComponent.y;
+                grad.z[i] += gradComponent.z;
             }
-            gradComponent = core.gradComponent(i, j, b);
-            grad.x[i] += gradComponent.x;
-            grad.y[i] += gradComponent.y;
-            grad.z[i] += gradComponent.z;
+
+            let sqrForce = grad.x[i] * grad.x[i] + grad.y[i] * grad.y[i] + grad.z[i] * grad.z[i];
+            let mass = atomicMasses[atoms[i].el];
+            this.sumSqr += sqrForce / mass;
+            this.rootSumSqr += sqrForce / (mass * mass);
+            this.norm += sqrForce;
         }
 
-        sqrForce = grad.x[i] * grad.x[i] + grad.y[i] * grad.y[i] + grad.z[i] * grad.z[i];
-        mass = utils.getAtomicMass(atoms[i].el);
-        core.sumSqr += sqrForce / mass;
-        core.rootSumSqr += sqrForce / (mass * mass);
-        core.norm += sqrForce;
-    }
+        this.rootSumSqr = Math.sqrt(this.rootSumSqr);
+        this.norm = Math.sqrt(this.norm);
 
-    core.rootSumSqr = Math.sqrt(core.rootSumSqr);
-    core.norm = Math.sqrt(core.norm);
+        // Calc unit vector of internal gradient
+        let invNorm = 1 / this.norm;
+        for (let i = 0; i < atomCount; i++) {
+            grad.x[i] *= invNorm;
+            grad.y[i] *= invNorm;
+            grad.z[i] *= invNorm;
+        }
 
-    // Calc unit vector of internal gradient
-    invNorm = 1 / core.norm;
-    for (i = 0; i < atomCount; i++) {
-        grad.x[i] *= invNorm;
-        grad.y[i] *= invNorm;
-        grad.z[i] *= invNorm;
-    }
+        return this.norm;
+    },
 
-    return core.norm;
-};
+    stochGradient() {
+        let {atoms, bonds} = structure,
+            atomCount = atoms.length,
+            bondCount = bonds.length;
 
-core.stochGradient = function () {
-    var atoms = structure.atoms,
-        atomCount = atoms.length,
-        bonds = structure.bonds,
-        bondCount = bonds.length,
-        utils = global.OE.utils,
-        gradComponent,
-        sqrForce, rndNorm, invNorm, invRndNorm, rsltNorm,
-        i, j, b,
-        mass;
+        let rndNorm = this.norm = this.sumSqr = this.rootSumSqr = 0;
 
-    rndNorm = core.norm = core.sumSqr = core.rootSumSqr = 0;
-
-    for (i = 0; i < atomCount; i++) {
-        grad.x[i] = grad.y[i] = grad.z[i] = 0;
-        for (b = 0; b < bondCount; b++) {
-            if (bonds[b].iAtm === i) {
-                j = bonds[b].jAtm;
-            } else if (bonds[b].jAtm === i) {
-                j = bonds[b].iAtm;
-            } else {
-                continue;
+        for (let i = 0; i < atomCount; i++) {
+            grad.x[i] = grad.y[i] = grad.z[i] = 0;
+            for (let b = 0; b < bondCount; b++) {
+                let j;
+                if (bonds[b].iAtm === i) {
+                    j = bonds[b].jAtm;
+                } else if (bonds[b].jAtm === i) {
+                    j = bonds[b].iAtm;
+                } else {
+                    continue;
+                }
+                let gradComponent = this.gradComponent(i, j, b);
+                grad.x[i] += gradComponent.x;
+                grad.y[i] += gradComponent.y;
+                grad.z[i] += gradComponent.z;
             }
-            gradComponent = core.gradComponent(i, j, b);
-            grad.x[i] += gradComponent.x;
-            grad.y[i] += gradComponent.y;
-            grad.z[i] += gradComponent.z;
+
+            let sqrForce = grad.x[i] * grad.x[i] + grad.y[i] * grad.y[i] + grad.z[i] * grad.z[i];
+            let mass = atomicMasses[atoms[i].el];
+            this.sumSqr += sqrForce / mass;
+            this.rootSumSqr += sqrForce / (mass * mass);
+            this.norm += sqrForce;
+
+            rndGrad.x[i] = 50 - Math.random() * 100;
+            rndGrad.y[i] = 50 - Math.random() * 100;
+            rndGrad.z[i] = 50 - Math.random() * 100;
+            rndNorm += rndGrad.x[i] * rndGrad.x[i] + rndGrad.y[i] * rndGrad.y[i] + rndGrad.z[i] * rndGrad.z[i];
         }
 
-        sqrForce = grad.x[i] * grad.x[i] + grad.y[i] * grad.y[i] + grad.z[i] * grad.z[i];
-        mass = utils.getAtomicMass(atoms[i].el);
-        core.sumSqr += sqrForce / mass;
-        core.rootSumSqr += sqrForce / (mass * mass);
-        core.norm += sqrForce;
+        this.rootSumSqr = Math.sqrt(this.rootSumSqr);
+        this.norm = Math.sqrt(this.norm);
+        rndNorm = Math.sqrt(rndNorm);
+        let rsltNorm = 0;
 
-        rndGrad.x[i] = 50 - Math.random() * 100;
-        rndGrad.y[i] = 50 - Math.random() * 100;
-        rndGrad.z[i] = 50 - Math.random() * 100;
-        rndNorm += rndGrad.x[i] * rndGrad.x[i] + rndGrad.y[i] * rndGrad.y[i] + rndGrad.z[i] * rndGrad.z[i];
-    }
+        // Calc unit vectors of internal and external gradient as well as resulting gradient
+        let invNorm = 1 / this.norm;
+        let invRndNorm = 1 / rndNorm;
+        for (let i = 0; i < atomCount; i++) {
+            grad.x[i] *= invNorm;
+            grad.y[i] *= invNorm;
+            grad.z[i] *= invNorm;
+            rndGrad.x[i] *= invRndNorm;
+            rndGrad.y[i] *= invRndNorm;
+            rndGrad.z[i] *= invRndNorm;
+            grad.x[i] += rndGrad.x[i];
+            grad.y[i] += rndGrad.y[i];
+            grad.z[i] += rndGrad.z[i];
+            rsltNorm += grad.x[i] * grad.x[i] + grad.y[i] * grad.y[i] + grad.z[i] * grad.z[i];
+        }
 
-    core.rootSumSqr = Math.sqrt(core.rootSumSqr);
-    core.norm = Math.sqrt(core.norm);
-    rndNorm = Math.sqrt(rndNorm);
-    rsltNorm = 0;
+        rsltNorm = Math.sqrt(rsltNorm);
 
-    // Calc unit vectors of internal and external gradient as well as resulting gradient
-    invNorm = 1 / core.norm;
-    invRndNorm = 1 / rndNorm;
-    for (i = 0; i < atomCount; i++) {
-        grad.x[i] *= invNorm;
-        grad.y[i] *= invNorm;
-        grad.z[i] *= invNorm;
-        rndGrad.x[i] *= invRndNorm;
-        rndGrad.y[i] *= invRndNorm;
-        rndGrad.z[i] *= invRndNorm;
-        grad.x[i] += rndGrad.x[i];
-        grad.y[i] += rndGrad.y[i];
-        grad.z[i] += rndGrad.z[i];
-        rsltNorm += grad.x[i] * grad.x[i] + grad.y[i] * grad.y[i] + grad.z[i] * grad.z[i];
-    }
+        // Calc unit vector of resulting gradient
+        invNorm = 1 / rsltNorm;
+        for (let i = 0; i < atomCount; i++) {
+            grad.x[i] *= invNorm;
+            grad.y[i] *= invNorm;
+            grad.z[i] *= invNorm;
+        }
 
-    rsltNorm = Math.sqrt(rsltNorm);
+        return this.norm;
+    },
 
-    // Calc unit vector of resulting gradient
-    invNorm = 1 / rsltNorm;
-    for (i = 0; i < atomCount; i++) {
-        grad.x[i] *= invNorm;
-        grad.y[i] *= invNorm;
-        grad.z[i] *= invNorm;
-    }
+    timeStep() {
+        // dt=sqrt(3NkT/sumSqr); [sumSqr]=eV^2/(angst^2*amu)
+        return 1.636886e-16 * Math.sqrt(structure.atoms.length * this.evolveParams.temperature / this.sumSqr);
+    },
 
-    return core.norm;
-};
-
-core.timeStep = function () {
-    // dt=sqrt(3NkT/sumSqr); [sumSqr]=eV^2/(angst^2*amu)
-    return 1.636886e-16 * Math.sqrt(structure.atoms.length * core.evolveParams.temperature / core.sumSqr);
-};
-
-core.tuneEvolver = function () {
-    var params = core.evolveParams,
-        logInterval = params.logInterval,
-        functor = {},
-        initFns = [], // functions to be called before the evolution procedure
-        stepFns = [], // functions to be called at every evolution step
-        finFns = []; // functions to be called after the evolution procedure is finished
-    initFns.push(grad.alloc.bind(grad));
-    stepFns.push(params.stoch ? core.stochGradient.bind(core) : core.gradient.bind(core));
-    finFns.push(grad.dispose.bind(grad));
-    if (params.stoch) {
-        initFns.push(rndGrad.alloc.bind(rndGrad));
-        finFns.push(rndGrad.dispose.bind(rndGrad));
-    }
-    if (logInterval) {
-        initFns.push(log.alloc.bind(log, Math.floor(params.stepCount / logInterval)));
-        stepFns.push(function (stepNo) {
-            if (stepNo % logInterval === 0) {
-                log.write(stepNo / logInterval);
+    tuneEvolver() {
+        let params = this.evolveParams,
+            initFns = [], // functions to be called before the evolution procedure
+            stepFns = [], // functions to be called at every evolution step
+            finFns = []; // functions to be called after the evolution procedure is finished
+        initFns.push(grad.alloc.bind(grad));
+        stepFns.push(params.stoch ? this.stochGradient.bind(this) : this.gradient.bind(this));
+        finFns.push(grad.dispose.bind(grad));
+        if (params.stoch) {
+            initFns.push(rndGrad.alloc.bind(rndGrad));
+            finFns.push(rndGrad.dispose.bind(rndGrad));
+        }
+        let logInterval = params.logInterval;
+        if (logInterval) {
+            initFns.push(log.alloc.bind(log, Math.floor(params.stepCount / logInterval)));
+            stepFns.push(stepNo => {
+                if (stepNo % logInterval === 0) {
+                    log.write(stepNo / logInterval);
+                }
+            });
+            finFns.push(() => {
+                self.postMessage({method: "evolve:log", data: log.data});
+                log.dispose();
+            });
+        }
+        return {
+            initialize() {
+                initFns.forEach(fn => fn());
+            },
+            step(stepNo) {
+                stepFns.forEach(fn => fn(stepNo));
+            },
+            finalize() {
+                finFns.forEach(fn => fn());
             }
-        });
-        finFns.push(function () {
-            global.postMessage({method: "evolve.log", data: log.data});
-            log.dispose();
-        });
-    }
-    functor.initialize = function () {
-        initFns.forEach(function (fn) {
-            fn();
-        });
-    };
-    functor.step = function (stepNo) {
-        // Prefer the `for` loop over `stepFns.forEach` for performance reasons
-        for (var i = 0, len = stepFns.length; i < len; i++) {
-            stepFns[i](stepNo);
-        }
-    };
-    functor.finalize = function () {
-        finFns.forEach(function (fn) {
-            fn();
-        });
-    };
-    return functor;
-};
+        };
+    },
 
-core.evolve = function () {
-    var params = core.evolveParams,
-        functor = core.tuneEvolver(),
-        atoms = structure.atoms,
-        atomCount = atoms.length,
-        factor = 1.2926E-4 * atomCount * params.temperature, // 1.5NkT [eV]
-        interval = Math.ceil(params.stepCount / 100),
-        progressFactor = 100 / params.stepCount,
-        progressMsg = {method: "evolve.progress"},
-        stepNo, stepCount, step, i;
-    functor.initialize();
-    functor.step(); // pre-calculate current value of gradient before the 1st step
-    for (stepNo = 0, stepCount = params.stepCount; stepNo < stepCount; stepNo++) {
-        step = factor * core.rootSumSqr / core.sumSqr;
-        for (i = 0; i < atomCount; i++) {
-            atoms[i].x -= step * grad.x[i];
-            atoms[i].y -= step * grad.y[i];
-            atoms[i].z -= step * grad.z[i];
+    evolve() {
+        var params = this.evolveParams,
+            functor = this.tuneEvolver(),
+            atoms = structure.atoms,
+            atomCount = atoms.length,
+            factor = 1.2926E-4 * atomCount * params.temperature, // 1.5NkT [eV]
+            interval = Math.ceil(params.stepCount / 100),
+            progressFactor = 100 / params.stepCount,
+            progressMsg = {method: "evolve:progress"};
+        functor.initialize();
+        functor.step(); // pre-calculate current value of gradient before the 1st step
+        for (let stepNo = 0, stepCount = params.stepCount; stepNo < stepCount; stepNo++) {
+            let step = factor * this.rootSumSqr / this.sumSqr;
+            for (let i = 0; i < atomCount; i++) {
+                atoms[i].x -= step * grad.x[i];
+                atoms[i].y -= step * grad.y[i];
+                atoms[i].z -= step * grad.z[i];
+            }
+            if (stepNo % interval === 0) {
+                progressMsg.data = stepNo * progressFactor;
+                self.postMessage(progressMsg);
+            }
+            functor.step(stepNo);
         }
-        if (stepNo % interval === 0) {
-            progressMsg.data = stepNo * progressFactor;
-            global.postMessage(progressMsg);
-        }
-        functor.step(stepNo);
+        functor.finalize();
     }
-    functor.finalize();
 };
-
-})(this);

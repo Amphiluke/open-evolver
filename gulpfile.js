@@ -1,9 +1,11 @@
 "use strict";
 
 let gulp = require("gulp"),
-    babel = require("gulp-babel");
+    replace = require("gulp-replace"),
+    rename = require("gulp-rename"),
+    babel = require("gulp-babel"),
+    files2JSON = require("gulp-files-to-json");
     //uglify = require("gulp-uglify"),
-    //files2JSON = require("gulp-files-to-json");
 
 gulp.task("dependencies", () => {
     let deps = [
@@ -17,9 +19,20 @@ gulp.task("dependencies", () => {
 });
 
 gulp.task("transpile", () => {
-    return gulp.src(["dev/src/js/**/*.js", "!dev/src/js/compiled/*"])
+    let importRE = /import\s+(\w+\s+from\s+)?"([\w.\/\-]+).js"/g,
+        replacement = "import $1\"$2.amd.js\"";
+    return gulp.src(["dev/src/js/**/*.js", "!dev/src/js/**/*.amd.js", "!dev/src/js/calc.js"])
+        .pipe(replace(importRE, replacement))
         .pipe(babel())
-        .pipe(gulp.dest("dev/src/js/compiled"));
+        .pipe(rename({suffix: ".amd"}))
+        .pipe(gulp.dest("dev/src/js"));
+});
+
+gulp.task("tpl", function () {
+    return gulp.src("dev/src/tpl/*.html")
+        .pipe(files2JSON("tpl.json"))
+        .pipe(gulp.dest("dev/src/tpl/"));
+        //.pipe(gulp.dest("./build/src/tpl/"));
 });
 
 gulp.task("prepare", ["dependencies", "transpile"]);

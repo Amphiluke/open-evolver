@@ -20,7 +20,7 @@
 <body>
 <h1>Summary data for<br/>“<%- data.name %>”</h1>
 <h2>Structure composition</h2>
-<p><%- _.map(data.atoms, function (count, atom) {return atom + "(" + count + ")"}).join(" ") %><br/><%= data.atomCount %> atoms in total</p>
+<p><% for (let [atom, count] of data.atoms) print(`${atom}(${count}) `); %><br/><%= data.atomCount %> atoms in total</p>
 <hr/>
 <h2>Potential parameters</h2>
 <table>
@@ -33,14 +33,14 @@
         </tr>
     </thead>
     <tbody>
-        <% _.each(data.potentials, function (potential, pair) { %>
+        <% for (let [pair, potential] of data.potentials) { %>
             <tr>
                 <td><%- pair %></td>
                 <td><%= potential.D0.toFixed(5) %></td>
                 <td><%= potential.R0.toFixed(5) %></td>
                 <td><%= potential.w0.toFixed(5) %></td>
             </tr>
-        <% }); %>
+        <% } %>
     </tbody>
 </table>
 <hr/>
@@ -56,7 +56,7 @@
         </tr>
     </thead>
     <tbody>
-        <% _.each(data.bonds, function (stats, pair) { %>
+        <% for (let [pair, stats] of data.bonds) { %>
             <tr>
                 <td><%- pair %></td>
                 <td><%= stats.count %></td>
@@ -64,7 +64,7 @@
                 <td><%= stats.avgEnergy.toFixed(5) %></td>
                 <td><%= stats.totEnergy.toFixed(5) %></td>
             </tr>
-        <% }); %>
+        <% } %>
     </tbody>
     <tfoot>
         <tr>

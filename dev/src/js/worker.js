@@ -1,24 +1,21 @@
 import Observer from "./observer.js";
 import app from "./app.js";
 
-const calcWorker = new Worker("src/js/calc.js");
+let blockingMethod = "ready";
+app.busy = true; // calc worker needs some initialization before it can be used
 
-let blockingMethod = null;
-
-const worker = Object.defineProperties(new Observer(), {
-    invoke: {
-        value(method, data) {
-            blockingMethod = method;
-            app.busy = true; // note that every worker invocation turns the application into busy state
-            calcWorker.postMessage({method, data});
-        }
+let worker = Object.assign(new Observer(), {
+    invoke(method, data) {
+        blockingMethod = method;
+        app.busy = true; // note that every worker invocation turns the application into busy state
+        calcWorker.postMessage({method, data});
     }
 });
 
-calcWorker.addEventListener("error", e => {throw e;});
+let calcWorker = new Worker("src/js/calc.js");
 
 calcWorker.addEventListener("message", e => {
-    const method = e.data && e.data.method;
+    let method = e.data && e.data.method;
     if (method) {
         if (method === blockingMethod) {
             app.busy = false;
@@ -27,5 +24,7 @@ calcWorker.addEventListener("message", e => {
         worker.trigger(method, e.data.data);
     }
 });
+
+calcWorker.addEventListener("error", e => {throw e;});
 
 export default worker;

@@ -29,6 +29,6 @@ store/*
 !store/README.md
 
 # Generated files
-dev/src/js/compiled/*.js
+dev/src/js/**/*.amd.js
 vendor/*
 !vendor/README.md

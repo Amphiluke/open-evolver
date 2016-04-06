@@ -5,7 +5,7 @@
   "author": "Amphiluke",
   "scripts": {
     "postinstall": "gulp prepare",
-    "build": "gulp",
+    "build": "gulp build",
     "transpile": "gulp transpile",
     "tpl": "gulp tpl"
   },

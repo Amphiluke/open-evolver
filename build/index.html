@@ -232,10 +232,22 @@
     <dl id="oe-report-data"></dl>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r72/three.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
-<script src="src/js/fallback.js"></script>
-<script src="src/js/main.js"></script>
+<script src="../vendor/system.js"></script>
+<script>
+    System.config({
+        baseURL: "./src/js",
+        map: {
+            jquery: "../vendor/jquery.min.js",
+            _: "../vendor/underscore-min.js",
+            three: "../vendor/three.min.js"
+        },
+        meta: {
+            jquery: {format: "cjs"},
+            _: {format: "cjs"},
+            three: {format: "cjs"}
+        }
+    });
+    System.import("interface.amd.js");
+</script>
 </body>
 </html>

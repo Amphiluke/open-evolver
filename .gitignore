@@ -30,5 +30,6 @@ store/*
 
 # Generated files
 dev/src/js/**/*.amd.js
+dev/src/css/**/*.css
 vendor/*
 !vendor/README.md

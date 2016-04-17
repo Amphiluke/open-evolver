@@ -1,4 +1,4 @@
-const handlerRegistry = new WeakMap();
+let handlerRegistry = new WeakMap();
 
 class Observer {
     constructor() {

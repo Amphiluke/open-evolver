@@ -4,6 +4,8 @@ let gulp = require("gulp"),
     replace = require("gulp-replace"),
     rename = require("gulp-rename"),
     babel = require("gulp-babel"),
+    less = require("gulp-less"),
+    LessPluginCleanCSS = require("less-plugin-clean-css"),
     files2JSON = require("gulp-files-to-json"),
     Builder = require("systemjs-builder"),
     fs = require("fs");
@@ -13,10 +15,9 @@ gulp.task("dependencies", () => {
         "node_modules/jquery/dist/jquery.min.js",
         "node_modules/systemjs/dist/system.js",
         "node_modules/three/three.min.js",
-        "node_modules/underscore/underscore-min.js",
         "node_modules/normalize.css/normalize.css"
     ];
-    return gulp.src(deps).pipe(gulp.dest("vendor"));
+    return gulp.src(deps).pipe(gulp.dest("vendor/"));
 });
 
 gulp.task("transpile", () => {
@@ -26,10 +27,17 @@ gulp.task("transpile", () => {
         .pipe(replace(importRE, replacement))
         .pipe(babel())
         .pipe(rename({suffix: ".amd"}))
-        .pipe(gulp.dest("dev/src/js"));
+        .pipe(gulp.dest("dev/src/js/"));
 });
 
-gulp.task("prepare", ["dependencies", "transpile"]);
+gulp.task("styles-dev", () => {
+    let cleanCSS = new LessPluginCleanCSS({advanced: true});
+    return gulp.src("dev/src/css/main.less")
+        .pipe(less({plugins: [cleanCSS]}))
+        .pipe(gulp.dest("dev/src/css/"));
+});
+
+gulp.task("prepare", ["dependencies", "transpile", "styles-dev"]);
 
 gulp.task("html", () => {
     return gulp.src("dev/index.html")
@@ -44,7 +52,9 @@ gulp.task("tpl", () => {
 });
 
 gulp.task("styles", () => {
-    return gulp.src("dev/src/css/main.css")
+    let cleanCSS = new LessPluginCleanCSS({advanced: true});
+    return gulp.src("dev/src/css/main.less")
+        .pipe(less({plugins: [cleanCSS]}))
         .pipe(gulp.dest("build/src/css/"));
 });
 

@@ -1,10 +1,10 @@
 {
   "name": "open-evolver",
-  "version": "2.0.0-alpha",
+  "version": "2.0.0-beta",
   "description": "Modeling quantum evolution at the nanoscale",
   "author": "Amphiluke",
   "scripts": {
-    "postinstall": "gulp prepare",
+    "postinstall": "gulp prepare & lodash exports=umd include=template -o vendor/lodash.js",
     "build": "gulp build",
     "transpile": "gulp transpile",
     "tpl": "gulp tpl"
@@ -20,16 +20,18 @@
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "gulp-files-to-json": "^0.2.1",
+    "gulp-less": "^3.0.5",
     "gulp-rename": "^1.2.2",
     "gulp-replace": "^0.5.4",
-    "gulp-uglify": "^1.5.3",
-    "systemjs-builder": "^0.15.9"
+    "less-plugin-clean-css": "^1.5.1",
+    "lodash-cli": "^4.9.0",
+    "systemjs-builder": "^0.15.15"
   },
   "dependencies": {
     "jquery": "^2.2.1",
+    "lodash": "^4.9.0",
     "normalize.css": "^3.0.3",
     "systemjs": "^0.19.23",
-    "three": "^0.74.0",
-    "underscore": "^1.8.3"
+    "three": "^0.74.0"
   }
 }

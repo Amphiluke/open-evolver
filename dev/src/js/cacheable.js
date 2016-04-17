@@ -1,4 +1,4 @@
-const cacheRegistry = new WeakMap();
+let cacheRegistry = new WeakMap();
 
 export default class {
     constructor(createFn) {

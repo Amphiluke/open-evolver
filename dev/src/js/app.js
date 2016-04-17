@@ -1,7 +1,6 @@
 import Observer from "./observer.js";
 
-const actionStore = new Map();
-let busyCount = 0;
+let actionStore = new Map();
 
 let app = Object.assign(new Observer(), {
     addAction(name, action) {
@@ -29,6 +28,8 @@ let app = Object.assign(new Observer(), {
     }
 });
 
+let busyCount = 0;
+
 Object.defineProperty(app, "busy", {
     configurable: true,
     enumerable: true,
@@ -36,12 +37,13 @@ Object.defineProperty(app, "busy", {
         return busyCount > 0;
     },
     set(value) {
-        let busy = this.busy;
+        let busyAnte = this.busy;
         // There is nothing to do if the value is false and the application is already idle
-        if (busy || value) {
+        if (busyAnte || value) {
             busyCount += value ? 1 : -1;
-            if (busy !== this.busy) {
-                this.trigger("app:stateChange", busyCount > 0);
+            let busy = this.busy;
+            if (busyAnte !== busy) {
+                this.trigger("app:stateChange", busy);
             }
         }
     }

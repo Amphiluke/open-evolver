@@ -75,12 +75,13 @@ formats.ml2 = formats.mol2 = {
             molChunks = fileStr.split("@<TRIPOS>MOLECULE").slice(1),
             atomRE = /@<TRIPOS>ATOM([\s\S]+?)(?:@<TRIPOS>|$)/,
             bondRE = /@<TRIPOS>BOND([\s\S]+?)(?:@<TRIPOS>|$)/,
-            newLineRE = /(?:\r?\n)+/;
+            newLineRE = /(?:\r?\n)+/,
+            noRec = [];
         for (let chunk of molChunks) {
             let atomSection = chunk.match(atomRE);
-            let atomRecords = (atomSection && atomSection[1].trim().split(newLineRE)) || [];
+            let atomRecords = (atomSection && atomSection[1].trim().split(newLineRE)) || noRec;
             let bondSection = chunk.match(bondRE);
-            let bondRecords = (bondSection && bondSection[1].trim().split(newLineRE)) || [];
+            let bondRecords = (bondSection && bondSection[1].trim().split(newLineRE)) || noRec;
             this.parseMolecule(atomRecords, bondRecords, result);
         }
         return result;

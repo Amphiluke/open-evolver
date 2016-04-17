@@ -1398,8 +1398,7 @@ define("app.amd.js", ["exports", "./observer.amd.js"], function(exports, _observ
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {default: obj};
   }
-  const actionStore = new Map();
-  let busyCount = 0;
+  let actionStore = new Map();
   let app = Object.assign(new _observerAmd2.default(), {
     addAction(name, action) {
       actionStore.set(name, action);
@@ -1422,6 +1421,7 @@ define("app.amd.js", ["exports", "./observer.amd.js"], function(exports, _observ
       return states;
     }
   });
+  let busyCount = 0;
   Object.defineProperty(app, "busy", {
     configurable: true,
     enumerable: true,
@@ -1429,11 +1429,12 @@ define("app.amd.js", ["exports", "./observer.amd.js"], function(exports, _observ
       return busyCount > 0;
     },
     set(value) {
-      let busy = this.busy;
-      if (busy || value) {
+      let busyAnte = this.busy;
+      if (busyAnte || value) {
         busyCount += value ? 1 : -1;
-        if (busy !== this.busy) {
-          this.trigger("app:stateChange", busyCount > 0);
+        let busy = this.busy;
+        if (busyAnte !== busy) {
+          this.trigger("app:stateChange", busy);
         }
       }
     }

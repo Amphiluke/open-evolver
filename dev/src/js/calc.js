@@ -190,7 +190,7 @@ let core = {
      */
     reducedMass(pair) {
         let elements = pair.match(/[A-Z][^A-Z]*/g);
-        if (!elements) {
+        if (!elements || elements.length < 2) {
             throw new Error(`Cannot extract element labels from string ${pair}`);
         }
         const mass1 = atomicMasses[elements[0]];
@@ -388,8 +388,9 @@ let core = {
         if (logInterval) {
             initFns.push(log.alloc.bind(log, Math.floor(params.stepCount / logInterval)));
             stepFns.push(stepNo => {
-                if (stepNo % logInterval === 0) {
-                    log.write(stepNo / logInterval);
+                let index = stepNo / logInterval;
+                if (Number.isInteger(index)) {
+                    log.write(index);
                 }
             });
             finFns.push(() => {

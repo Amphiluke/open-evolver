@@ -2,9 +2,9 @@ import THREE from "three";
 import Cacheable from "./cacheable.js";
 import structure from "./structure.js";
 
-const colors = new Cacheable(color => new THREE.Color(color));
+let colors = new Cacheable(color => new THREE.Color(color));
 
-const presets = Object.create({
+let presets = Object.create({
     get(el) {
         return this.hasOwnProperty(el) ? this[el] : this._def;
     },
@@ -23,22 +23,22 @@ presets.set("C", {color: 0xFF0000});
 presets.set("H", {radius: 0.7});
 
 
-const pointMaterials = new Cacheable(atom => {
+let pointMaterials = new Cacheable(atom => {
     let preset = presets.get(atom);
     return new THREE.PointsMaterial({color: preset.color, sizeAttenuation: false});
 });
 
-const atomMaterials = new Cacheable(atom => {
+let atomMaterials = new Cacheable(atom => {
     let preset = presets.get(atom);
     return new THREE.MeshLambertMaterial({color: preset.color});
 });
 
-const atomGeometries = new Cacheable(atom => {
+let atomGeometries = new Cacheable(atom => {
     let preset = presets.get(atom);
     return new THREE.SphereGeometry(preset.radius);
 });
 
-const bondMaterials = new Cacheable(type => {
+let bondMaterials = new Cacheable(type => {
     // There are only 2 graph types: "basic" and "extra", however construction of bond materials through `Cacheable`
     // has an advantage of lazy instantiation of complex objects (instances will be created only on actual need)
     if (type === "extra") {
@@ -48,9 +48,9 @@ const bondMaterials = new Cacheable(type => {
     }
 });
 
-const canvas = {el: null, width: 600, height: 500};
+let canvas = {el: null, width: 600, height: 500};
 
-const assets3 = {
+let assets3 = {
     scene: new THREE.Scene(),
     group: new THREE.Object3D(),
     camera: new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000),
@@ -71,7 +71,7 @@ assets3.renderer.render(assets3.scene, assets3.camera);
 canvas.el = assets3.renderer.domElement;
 
 
-const draw = {
+let draw = {
     get canvas() {
         return canvas.el;
     },
@@ -122,7 +122,7 @@ const draw = {
     },
 
     clearScene() {
-        const group = assets3.group;
+        let group = assets3.group;
         let child = group.children[0];
         while (child) {
             group.remove(child);

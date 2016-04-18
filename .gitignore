@@ -29,7 +29,7 @@ store/*
 !store/README.md
 
 # Generated files
-dev/src/js/**/*.amd.js
-dev/src/css/**/*.css
+dev/js/**/*.amd.js
+dev/css/**/*.css
 vendor/*
 !vendor/README.md

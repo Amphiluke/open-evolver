@@ -23,18 +23,18 @@ gulp.task("dependencies", () => {
 gulp.task("transpile", () => {
     let importRE = /import\s+(\w+\s+from\s+)?"([\w.\/\-]+).js"/g,
         replacement = "import $1\"$2.amd.js\"";
-    return gulp.src(["dev/src/js/**/*.js", "!dev/src/js/**/*.amd.js", "!dev/src/js/calc.js"])
+    return gulp.src(["dev/js/**/*.js", "!dev/js/**/*.amd.js", "!dev/js/calc.js"])
         .pipe(replace(importRE, replacement))
         .pipe(babel())
         .pipe(rename({suffix: ".amd"}))
-        .pipe(gulp.dest("dev/src/js/"));
+        .pipe(gulp.dest("dev/js/"));
 });
 
 gulp.task("styles-dev", () => {
     let cleanCSS = new LessPluginCleanCSS({advanced: true});
-    return gulp.src("dev/src/css/main.less")
+    return gulp.src("dev/css/main.less")
         .pipe(less({plugins: [cleanCSS]}))
-        .pipe(gulp.dest("dev/src/css/"));
+        .pipe(gulp.dest("dev/css/"));
 });
 
 gulp.task("prepare", ["dependencies", "transpile", "styles-dev"]);
@@ -45,46 +45,46 @@ gulp.task("html", () => {
 });
 
 gulp.task("tpl", () => {
-    return gulp.src("dev/src/tpl/*.html")
+    return gulp.src("dev/tpl/*.html")
         .pipe(files2JSON("tpl.json"))
-        .pipe(gulp.dest("dev/src/tpl/"))
-        .pipe(gulp.dest("build/src/tpl/"));
+        .pipe(gulp.dest("dev/tpl/"))
+        .pipe(gulp.dest("build/tpl/"));
 });
 
 gulp.task("styles", () => {
     let cleanCSS = new LessPluginCleanCSS({advanced: true});
-    return gulp.src("dev/src/css/main.less")
+    return gulp.src("dev/css/main.less")
         .pipe(less({plugins: [cleanCSS]}))
-        .pipe(gulp.dest("build/src/css/"));
+        .pipe(gulp.dest("build/css/"));
 });
 
 gulp.task("images", () => {
-    return gulp.src("dev/src/img/**/*")
-        .pipe(gulp.dest("build/src/img/"));
+    return gulp.src("dev/img/**/*")
+        .pipe(gulp.dest("build/img/"));
 });
 
 gulp.task("detachedScripts", () => {
-    return gulp.src(["dev/src/js/calc.js"])
-        .pipe(gulp.dest("build/src/js/"));
+    return gulp.src(["dev/js/calc.js"])
+        .pipe(gulp.dest("build/js/"));
 });
 
 gulp.task("lib", cb => {
-    let lib = require("./dev/src/lib.json");
+    let lib = require("./dev/lib.json");
     let json = JSON.stringify(lib);
-    fs.writeFile("build/src/lib.json", json, cb);
+    fs.writeFile("build/lib.json", json, cb);
 });
 
 gulp.task("bundle", ["transpile"], () => {
     let builder = new Builder();
     builder.config({
-        baseURL: "dev/src/js",
+        baseURL: "dev/js",
         meta: {
             jquery: {build: false},
             _: {build: false},
             three: {build: false}
         }
     });
-    return builder.bundle("interface.amd.js", "build/src/js/interface.amd.js");
+    return builder.bundle("interface.amd.js", "build/js/interface.amd.js");
 });
 
 gulp.task("build", ["html", "tpl", "styles", "images", "detachedScripts", "lib", "bundle"]);

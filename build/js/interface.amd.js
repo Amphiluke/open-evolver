@@ -799,7 +799,7 @@ define("templates.amd.js", ["exports", "./app.amd.js", "./utils.amd.js", "_"], f
   }
   let templates = new Map();
   _appAmd2.default.busy = true;
-  _utilsAmd2.default.readFile("src/tpl/tpl.json").then((json) => {
+  _utilsAmd2.default.readFile("tpl/tpl.json").then((json) => {
     let tpls = JSON.parse(json);
     let tplSettings = {variable: "data"};
     for (let name of Object.keys(tpls)) {
@@ -955,12 +955,13 @@ define("file-processing.amd.js", ["exports", "./utils.amd.js", "./structure.amd.
           molChunks = fileStr.split("@<TRIPOS>MOLECULE").slice(1),
           atomRE = /@<TRIPOS>ATOM([\s\S]+?)(?:@<TRIPOS>|$)/,
           bondRE = /@<TRIPOS>BOND([\s\S]+?)(?:@<TRIPOS>|$)/,
-          newLineRE = /(?:\r?\n)+/;
+          newLineRE = /(?:\r?\n)+/,
+          noRec = [];
       for (let chunk of molChunks) {
         let atomSection = chunk.match(atomRE);
-        let atomRecords = atomSection && atomSection[1].trim().split(newLineRE) || [];
+        let atomRecords = atomSection && atomSection[1].trim().split(newLineRE) || noRec;
         let bondSection = chunk.match(bondRE);
-        let bondRecords = bondSection && bondSection[1].trim().split(newLineRE) || [];
+        let bondRecords = bondSection && bondSection[1].trim().split(newLineRE) || noRec;
         this.parseMolecule(atomRecords, bondRecords, result);
       }
       return result;
@@ -1246,7 +1247,7 @@ define("cacheable.amd.js", ["exports"], function(exports) {
       throw new TypeError("Cannot call a class as a function");
     }
   }
-  const cacheRegistry = new WeakMap();
+  let cacheRegistry = new WeakMap();
   let _class = function() {
     function _class(createFn) {
       _classCallCheck(this, _class);
@@ -1315,7 +1316,7 @@ define("utils.amd.js", ["exports", "./app.amd.js"], function(exports, _appAmd) {
   };
   exports.default = utils;
   _appAmd2.default.busy = true;
-  utils.readFile("src/lib.json").then((libText) => {
+  utils.readFile("lib.json").then((libText) => {
     let lib = JSON.parse(libText);
     utils.atomicMasses = Object.freeze(lib.atomicMasses);
     _appAmd2.default.busy = false;
@@ -1333,7 +1334,7 @@ define("observer.amd.js", ["exports"], function(exports) {
       throw new TypeError("Cannot call a class as a function");
     }
   }
-  const handlerRegistry = new WeakMap();
+  let handlerRegistry = new WeakMap();
   let Observer = function() {
     function Observer() {
       _classCallCheck(this, Observer);
@@ -1463,7 +1464,7 @@ define("worker.amd.js", ["exports", "./observer.amd.js", "./app.amd.js"], functi
         data
       });
     }});
-  let calcWorker = new Worker("src/js/calc.js");
+  let calcWorker = new Worker("js/calc.js");
   calcWorker.addEventListener("message", (e) => {
     let method = e.data && e.data.method;
     if (method) {
@@ -1627,8 +1628,8 @@ define("draw.amd.js", ["exports", "three", "./cacheable.amd.js", "./structure.am
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {default: obj};
   }
-  const colors = new _cacheableAmd2.default((color) => new _three2.default.Color(color));
-  const presets = Object.create({
+  let colors = new _cacheableAmd2.default((color) => new _three2.default.Color(color));
+  let presets = Object.create({
     get(el) {
       return this.hasOwnProperty(el) ? this[el] : this._def;
     },
@@ -1645,22 +1646,22 @@ define("draw.amd.js", ["exports", "three", "./cacheable.amd.js", "./structure.am
       })}});
   presets.set("C", {color: 0xFF0000});
   presets.set("H", {radius: 0.7});
-  const pointMaterials = new _cacheableAmd2.default((atom) => {
+  let pointMaterials = new _cacheableAmd2.default((atom) => {
     let preset = presets.get(atom);
     return new _three2.default.PointsMaterial({
       color: preset.color,
       sizeAttenuation: false
     });
   });
-  const atomMaterials = new _cacheableAmd2.default((atom) => {
+  let atomMaterials = new _cacheableAmd2.default((atom) => {
     let preset = presets.get(atom);
     return new _three2.default.MeshLambertMaterial({color: preset.color});
   });
-  const atomGeometries = new _cacheableAmd2.default((atom) => {
+  let atomGeometries = new _cacheableAmd2.default((atom) => {
     let preset = presets.get(atom);
     return new _three2.default.SphereGeometry(preset.radius);
   });
-  const bondMaterials = new _cacheableAmd2.default((type) => {
+  let bondMaterials = new _cacheableAmd2.default((type) => {
     if (type === "extra") {
       return new _three2.default.LineDashedMaterial({
         dashSize: 0.2,
@@ -1671,12 +1672,12 @@ define("draw.amd.js", ["exports", "three", "./cacheable.amd.js", "./structure.am
       return new _three2.default.LineBasicMaterial({vertexColors: _three2.default.VertexColors});
     }
   });
-  const canvas = {
+  let canvas = {
     el: null,
     width: 600,
     height: 500
   };
-  const assets3 = {
+  let assets3 = {
     scene: new _three2.default.Scene(),
     group: new _three2.default.Object3D(),
     camera: new _three2.default.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000),
@@ -1693,7 +1694,7 @@ define("draw.amd.js", ["exports", "three", "./cacheable.amd.js", "./structure.am
   assets3.renderer.setSize(canvas.width, canvas.height);
   assets3.renderer.render(assets3.scene, assets3.camera);
   canvas.el = assets3.renderer.domElement;
-  const draw = {
+  let draw = {
     get canvas() {
       return canvas.el;
     },
@@ -1734,7 +1735,7 @@ define("draw.amd.js", ["exports", "three", "./cacheable.amd.js", "./structure.am
       assets3.renderer.setClearColor(color);
     },
     clearScene() {
-      const group = assets3.group;
+      let group = assets3.group;
       let child = group.children[0];
       while (child) {
         group.remove(child);

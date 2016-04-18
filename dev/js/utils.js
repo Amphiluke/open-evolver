@@ -46,7 +46,7 @@ let utils = {
 export default utils;
 
 app.busy = true;
-utils.readFile("src/lib.json").then(libText => {
+utils.readFile("lib.json").then(libText => {
     let lib = JSON.parse(libText);
     utils.atomicMasses = Object.freeze(lib.atomicMasses);
     app.busy = false;

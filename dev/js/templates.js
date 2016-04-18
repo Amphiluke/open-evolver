@@ -6,7 +6,7 @@ let templates = new Map();
 
 app.busy = true;
 
-utils.readFile("src/tpl/tpl.json").then(json => {
+utils.readFile("tpl/tpl.json").then(json => {
     let tpls = JSON.parse(json);
     let tplSettings = {variable: "data"};
     for (let name of Object.keys(tpls)) {

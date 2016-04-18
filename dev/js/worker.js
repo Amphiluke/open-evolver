@@ -12,7 +12,7 @@ let worker = Object.assign(new Observer(), {
     }
 });
 
-let calcWorker = new Worker("src/js/calc.js");
+let calcWorker = new Worker("js/calc.js");
 
 calcWorker.addEventListener("message", e => {
     let method = e.data && e.data.method;

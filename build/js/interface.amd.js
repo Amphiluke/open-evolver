@@ -23,7 +23,7 @@ define("components/store.amd.js", ["exports", "jquery", "./abstract-dialog.amd.j
         _jquery2.default.getJSON("../store/info.json").done((data) => this.resetHTML(data)).fail(() => this.resetHTML()).always(() => $list.removeClass("oe-store-list-loading"));
         this.loaded = true;
       }
-      return super.show();
+      return Object.getPrototypeOf(this).show.apply(this, arguments);
     },
     apply() {
       let path = this.$el.find(".active[data-path]").data("path");
@@ -125,6 +125,16 @@ define("components/save-summary.amd.js", ["exports", "./abstract-dialog.amd.js",
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {default: obj};
   }
+  function nodeVisitor(name, node) {
+    if (node instanceof Map) {
+      let result = Object.create(null);
+      for (let [key, value] of node) {
+        result[key] = value;
+      }
+      return result;
+    }
+    return node;
+  }
   let saveSummary = Object.assign(new _abstractDialogAmd2.default(".oe-save-summary-form"), {
     data: null,
     handleCollectStats(data) {
@@ -140,7 +150,7 @@ define("components/save-summary.amd.js", ["exports", "./abstract-dialog.amd.js",
             text = _templatesAmd2.default.get("summary")(this.data);
             break;
           case "application/json":
-            text = JSON.stringify(this.data, null, 2);
+            text = JSON.stringify(this.data, nodeVisitor, 2);
             break;
           default:
             text = "TBD";
@@ -345,10 +355,12 @@ define("components/potentials.amd.js", ["exports", "jquery", "./abstract-dialog.
     show() {
       let atoms = _structureAmd2.default.structure.atoms,
           pairs = new Set();
-      for (let bond of _structureAmd2.default.structure.bonds) {
-        let prefix = bond.type === "x" ? "x-" : "";
-        let el1 = atoms[bond.iAtm].el;
-        let el2 = atoms[bond.jAtm].el;
+      for (let {type,
+        iAtm,
+        jAtm} of _structureAmd2.default.structure.bonds) {
+        let prefix = type === "x" ? "x-" : "";
+        let el1 = atoms[iAtm].el;
+        let el2 = atoms[jAtm].el;
         pairs.add(prefix + el1 + el2).add(prefix + el2 + el1);
       }
       this.$el.find("li[data-pair]").each((idx, row) => {
@@ -1008,24 +1020,32 @@ define("file-processing.amd.js", ["exports", "./utils.amd.js", "./structure.amd.
       var hin = ";The structure was saved in OpenEvolver\nforcefield mm+\n";
       if (graphType === "empty") {
         let i = 0;
-        for (let atom of _structureAmd2.default.structure.atoms) {
+        for (let {el,
+          x,
+          y,
+          z} of _structureAmd2.default.structure.atoms) {
           hin += `mol ${++i}
-atom 1 - ${atom.el} ** - 0 ${atom.x.toFixed(4)} ${atom.y.toFixed(4)} ${atom.z.toFixed(4)} 0
+atom 1 - ${el} ** - 0 ${x.toFixed(4)} ${y.toFixed(4)} ${z.toFixed(4)} 0
 endmol ${i}
 `;
         }
       } else {
         let nbors = new Array(_structureAmd2.default.structure.atoms.length);
-        for (let bond of _structureAmd2.default.structure.bonds) {
-          if (graphType !== "basic" || bond.type !== "x") {
-            (nbors[bond.iAtm] || (nbors[bond.iAtm] = [])).push(`${bond.jAtm + 1} ${bond.type}`);
-            (nbors[bond.jAtm] || (nbors[bond.jAtm] = [])).push(`${bond.iAtm + 1} ${bond.type}`);
+        for (let {type,
+          iAtm,
+          jAtm} of _structureAmd2.default.structure.bonds) {
+          if (graphType !== "basic" || type !== "x") {
+            (nbors[iAtm] || (nbors[iAtm] = [])).push(`${jAtm + 1} ${type}`);
+            (nbors[jAtm] || (nbors[jAtm] = [])).push(`${iAtm + 1} ${type}`);
           }
         }
         hin += "mol 1\n";
         let i = -1;
-        for (let atom of _structureAmd2.default.structure.atoms) {
-          hin += `atom ${++i + 1} - ${atom.el} ** - 0 ${atom.x.toFixed(4)} ${atom.y.toFixed(4)} ${atom.z.toFixed(4)} ` + (nbors[i] ? `${nbors[i].length} ${nbors[i].join(" ")}` : "0") + "\n";
+        for (let {el,
+          x,
+          y,
+          z} of _structureAmd2.default.structure.atoms) {
+          hin += `atom ${++i + 1} - ${el} ** - 0 ${x.toFixed(4)} ${y.toFixed(4)} ${z.toFixed(4)} ` + (nbors[i] ? `${nbors[i].length} ${nbors[i].join(" ")}` : "0") + "\n";
         }
         hin += "endmol 1";
       }
@@ -1043,16 +1063,21 @@ NO_CHARGES
 @<TRIPOS>ATOM
 `;
       let i = 0;
-      for (let atom of _structureAmd2.default.structure.atoms) {
-        ml2 += `${++i} ${atom.el} ${atom.x.toFixed(4)} ${atom.y.toFixed(4)} ${atom.z.toFixed(4)} ${atom.el} 1 **** 0.0000\n`;
+      for (let {el,
+        x,
+        y,
+        z} of _structureAmd2.default.structure.atoms) {
+        ml2 += `${++i} ${el} ${x.toFixed(4)} ${y.toFixed(4)} ${z.toFixed(4)} ${el} 1 **** 0.0000\n`;
       }
       let bondCount = 0;
       if (graphType !== "empty") {
         ml2 += "@<TRIPOS>BOND\n";
-        for (let bond of _structureAmd2.default.structure.bonds) {
-          if (graphType !== "basic" || bond.type !== "x") {
+        for (let {type,
+          iAtm,
+          jAtm} of _structureAmd2.default.structure.bonds) {
+          if (graphType !== "basic" || type !== "x") {
             bondCount++;
-            ml2 += `${bondCount} ${bond.iAtm + 1} ${bond.jAtm + 1} ${bond.type}\n`;
+            ml2 += `${bondCount} ${iAtm + 1} ${jAtm + 1} ${type}\n`;
           }
         }
       }
@@ -1062,8 +1087,11 @@ NO_CHARGES
     },
     makeXYZ() {
       let xyz = _structureAmd2.default.structure.atoms.length + "\nThe structure was saved in OpenEvolver";
-      for (let atom of _structureAmd2.default.structure.atoms) {
-        xyz += `\n${atom.el} ${atom.x.toFixed(5)} ${atom.y.toFixed(5)} ${atom.z.toFixed(5)}`;
+      for (let {el,
+        x,
+        y,
+        z} of _structureAmd2.default.structure.atoms) {
+        xyz += `\n${el} ${x.toFixed(5)} ${y.toFixed(5)} ${z.toFixed(5)}`;
       }
       return xyz;
     }
@@ -1294,13 +1322,13 @@ define("utils.amd.js", ["exports", "./app.amd.js"], function(exports, _appAmd) {
             if (xhr.status === 200) {
               resolve(xhr.responseText);
             }
-          }, false);
-          xhr.addEventListener("error", () => reject(xhr.status), false);
+          });
+          xhr.addEventListener("error", () => reject(xhr.status));
           xhr.send(null);
         } else {
           let reader = new FileReader();
-          reader.addEventListener("load", () => resolve(reader.result), false);
-          reader.addEventListener("error", () => reject(reader.error), false);
+          reader.addEventListener("load", () => resolve(reader.result));
+          reader.addEventListener("error", () => reject(reader.error));
           reader.readAsText(ref);
         }
       });
@@ -1521,7 +1549,7 @@ define("structure.amd.js", ["exports", "./observer.amd.js", "./app.amd.js", "./u
             pairList.push(atomList[i] + atomList[j]);
           }
         }
-        pairList.push(...pairList.map((pair) => "x-" + pair));
+        pairList.push(...pairList.map((pair) => `x-${pair}`));
       }
       this.trigger("updateStructure", rescanAtoms !== false);
       if (fromWorker !== true) {
@@ -1546,12 +1574,15 @@ define("structure.amd.js", ["exports", "./observer.amd.js", "./app.amd.js", "./u
         z: 0
       };
       let mass = 0;
-      for (let atom of structure.atoms) {
-        const atomicMass = _utilsAmd2.default.atomicMasses[atom.el];
+      for (let {el,
+        x,
+        y,
+        z} of structure.atoms) {
+        const atomicMass = _utilsAmd2.default.atomicMasses[el];
         mass += atomicMass;
-        result.x += atomicMass * atom.x;
-        result.y += atomicMass * atom.y;
-        result.z += atomicMass * atom.z;
+        result.x += atomicMass * x;
+        result.y += atomicMass * y;
+        result.z += atomicMass * z;
       }
       result.x /= mass;
       result.y /= mass;
@@ -1755,11 +1786,14 @@ define("draw.amd.js", ["exports", "three", "./cacheable.amd.js", "./structure.am
     addSceneAtoms() {
       let Mesh = _three2.default.Mesh,
           group = assets3.group;
-      for (let atom of _structureAmd2.default.structure.atoms) {
-        let atom3 = new Mesh(atomGeometries.get(atom.el), atomMaterials.get(atom.el));
-        atom3.position.x = atom.x;
-        atom3.position.y = atom.y;
-        atom3.position.z = atom.z;
+      for (let {el,
+        x,
+        y,
+        z} of _structureAmd2.default.structure.atoms) {
+        let atom3 = new Mesh(atomGeometries.get(el), atomMaterials.get(el));
+        atom3.position.x = x;
+        atom3.position.y = y;
+        atom3.position.z = z;
         group.add(atom3);
       }
     },
@@ -1769,9 +1803,9 @@ define("draw.amd.js", ["exports", "three", "./cacheable.amd.js", "./structure.am
           group = assets3.group,
           atoms = _structureAmd2.default.structure.atoms,
           bindMap = new Int8Array(atoms.length);
-      for (let bond of _structureAmd2.default.structure.bonds) {
-        let iAtm = bond.iAtm;
-        let jAtm = bond.jAtm;
+      for (let {type,
+        iAtm,
+        jAtm} of _structureAmd2.default.structure.bonds) {
         bindMap[iAtm] = bindMap[jAtm] = 1;
         let bondGeometry = new _three2.default.Geometry();
         let atom = atoms[iAtm];
@@ -1780,7 +1814,7 @@ define("draw.amd.js", ["exports", "three", "./cacheable.amd.js", "./structure.am
         atom = atoms[jAtm];
         bondGeometry.vertices.push(new Vector3(atom.x, atom.y, atom.z));
         bondGeometry.colors.push(colors.get(presets.get(atom.el).color));
-        if (bond.type === "x") {
+        if (type === "x") {
           bondGeometry.computeLineDistances();
           group.add(new Line(bondGeometry, bondMaterials.get("extra"), _three2.default.LineStrip));
         } else {
@@ -1801,10 +1835,13 @@ define("draw.amd.js", ["exports", "three", "./cacheable.amd.js", "./structure.am
       let Points = _three2.default.Points,
           Vector3 = _three2.default.Vector3,
           group = assets3.group;
-      for (let atom of _structureAmd2.default.structure.atoms) {
+      for (let {el,
+        x,
+        y,
+        z} of _structureAmd2.default.structure.atoms) {
         let pointGeometry = new _three2.default.Geometry();
-        pointGeometry.vertices.push(new Vector3(atom.x, atom.y, atom.z));
-        group.add(new Points(pointGeometry, pointMaterials.get(atom.el)));
+        pointGeometry.vertices.push(new Vector3(x, y, z));
+        group.add(new Points(pointGeometry, pointMaterials.get(el)));
       }
     },
     addAxes() {

@@ -1,1 +1,1 @@
-OpenEvolver dependencies will be automatically copied into this directory once you install the project locally via `npm install` (see the [`dependencies` task](https://github.com/Amphiluke/open-evolver/blob/master/gulpfile.js#L8) in `gulpfile.js`). These files are not under version control
+OpenEvolver dependencies will be automatically copied into this directory once you install the project locally via `npm install` (see the `dependencies` task in [`gulpfile.js`](../gulpfile.js)). These files are not under version control.

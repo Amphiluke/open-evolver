@@ -19,13 +19,13 @@ let utils = {
                     if (xhr.status === 200) {
                         resolve(xhr.responseText);
                     }
-                }, false);
-                xhr.addEventListener("error", () => reject(xhr.status), false);
+                });
+                xhr.addEventListener("error", () => reject(xhr.status));
                 xhr.send(null);
             } else { // file object or blob was passed
                 let reader = new FileReader();
-                reader.addEventListener("load", () => resolve(reader.result), false);
-                reader.addEventListener("error", () => reject(reader.error), false);
+                reader.addEventListener("load", () => resolve(reader.result));
+                reader.addEventListener("error", () => reject(reader.error));
                 reader.readAsText(ref);
             }
         });

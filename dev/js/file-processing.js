@@ -134,24 +134,24 @@ export default {
         var hin = ";The structure was saved in OpenEvolver\nforcefield mm+\n";
         if (graphType === "empty") {
             let i = 0;
-            for (let atom of structure.structure.atoms) {
+            for (let {el, x, y, z} of structure.structure.atoms) {
                 hin += `mol ${++i}
-atom 1 - ${atom.el} ** - 0 ${atom.x.toFixed(4)} ${atom.y.toFixed(4)} ${atom.z.toFixed(4)} 0
+atom 1 - ${el} ** - 0 ${x.toFixed(4)} ${y.toFixed(4)} ${z.toFixed(4)} 0
 endmol ${i}
 `;
             }
         } else {
             let nbors = new Array(structure.structure.atoms.length);
-            for (let bond of structure.structure.bonds) {
-                if (graphType !== "basic" || bond.type !== "x") {
-                    (nbors[bond.iAtm] || (nbors[bond.iAtm] = [])).push(`${bond.jAtm + 1} ${bond.type}`);
-                    (nbors[bond.jAtm] || (nbors[bond.jAtm] = [])).push(`${bond.iAtm + 1} ${bond.type}`);
+            for (let {type, iAtm, jAtm} of structure.structure.bonds) {
+                if (graphType !== "basic" || type !== "x") {
+                    (nbors[iAtm] || (nbors[iAtm] = [])).push(`${jAtm + 1} ${type}`);
+                    (nbors[jAtm] || (nbors[jAtm] = [])).push(`${iAtm + 1} ${type}`);
                 }
             }
             hin += "mol 1\n"; // multiple molecule cases are not supported in this version
             let i = -1;
-            for (let atom of structure.structure.atoms) {
-                hin += `atom ${++i + 1} - ${atom.el} ** - 0 ${atom.x.toFixed(4)} ${atom.y.toFixed(4)} ${atom.z.toFixed(4)} ` +
+            for (let {el, x, y, z} of structure.structure.atoms) {
+                hin += `atom ${++i + 1} - ${el} ** - 0 ${x.toFixed(4)} ${y.toFixed(4)} ${z.toFixed(4)} ` +
                     (nbors[i] ? `${nbors[i].length} ${nbors[i].join(" ")}` : "0") + "\n";
             }
             hin += "endmol 1";
@@ -171,16 +171,16 @@ NO_CHARGES
 @<TRIPOS>ATOM
 `; // bond count is TBD later
         let i = 0;
-        for (let atom of structure.structure.atoms) {
-            ml2 += `${++i} ${atom.el} ${atom.x.toFixed(4)} ${atom.y.toFixed(4)} ${atom.z.toFixed(4)} ${atom.el} 1 **** 0.0000\n`;
+        for (let {el, x, y, z} of structure.structure.atoms) {
+            ml2 += `${++i} ${el} ${x.toFixed(4)} ${y.toFixed(4)} ${z.toFixed(4)} ${el} 1 **** 0.0000\n`;
         }
         let bondCount = 0;
         if (graphType !== "empty") {
             ml2 += "@<TRIPOS>BOND\n";
-            for (let bond of structure.structure.bonds) {
-                if (graphType !== "basic" || bond.type !== "x") {
+            for (let {type, iAtm, jAtm} of structure.structure.bonds) {
+                if (graphType !== "basic" || type !== "x") {
                     bondCount++;
-                    ml2 += `${bondCount} ${bond.iAtm + 1} ${bond.jAtm + 1} ${bond.type}\n`;
+                    ml2 += `${bondCount} ${iAtm + 1} ${jAtm + 1} ${type}\n`;
                 }
             }
         }
@@ -191,8 +191,8 @@ NO_CHARGES
 
     makeXYZ() {
         let xyz = structure.structure.atoms.length + "\nThe structure was saved in OpenEvolver";
-        for (let atom of structure.structure.atoms) {
-            xyz += `\n${atom.el} ${atom.x.toFixed(5)} ${atom.y.toFixed(5)} ${atom.z.toFixed(5)}`;
+        for (let {el, x, y, z} of structure.structure.atoms) {
+            xyz += `\n${el} ${x.toFixed(5)} ${y.toFixed(5)} ${z.toFixed(5)}`;
         }
         return xyz;
     }

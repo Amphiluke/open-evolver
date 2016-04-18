@@ -19,7 +19,7 @@ let store = Object.assign(new AbstractDialog(".oe-store-form"), {
                 .always(() => $list.removeClass("oe-store-list-loading"));
             this.loaded = true;
         }
-        return super.show();
+        return Object.getPrototypeOf(this).show.apply(this, arguments);
     },
 
     apply() {

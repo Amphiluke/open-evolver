@@ -13,7 +13,7 @@ xhr.addEventListener("load", () => {
         atomicMasses = lib.atomicMasses;
         self.postMessage({method: "ready"});
     }
-}, false);
+});
 xhr.send(null);
 
 
@@ -100,27 +100,27 @@ let api = {
         data.name = structure.name;
         data.atomCount = atoms.length;
         data.atoms = new Map();
-        for (let atom of atoms) {
-            let count = data.atoms.get(atom.el);
-            data.atoms.set(atom.el, count ? count + 1 : 1);
+        for (let {el} of atoms) {
+            let count = data.atoms.get(el);
+            data.atoms.set(el, count ? count + 1 : 1);
         }
 
         data.bondCount = bonds.length;
         data.bonds = new Map();
-        for (let bond of bonds) {
-            let prefix = (bond.type === "x") ? "x-" : "";
-            let pair = prefix + atoms[bond.jAtm].el + atoms[bond.iAtm].el;
+        for (let {type, iAtm, jAtm, potential} of bonds) {
+            let prefix = (type === "x") ? "x-" : "";
+            let pair = prefix + atoms[jAtm].el + atoms[iAtm].el;
             if (!data.bonds.has(pair)) {
-                pair = prefix + atoms[bond.iAtm].el + atoms[bond.jAtm].el;
+                pair = prefix + atoms[iAtm].el + atoms[jAtm].el;
                 if (!data.bonds.has(pair)) {
                     data.bonds.set(pair, {count: 0, avgLen: 0, avgEnergy: 0, totEnergy: 0});
                 }
             }
-            let distance = core.distance(bond.iAtm, bond.jAtm);
+            let distance = core.distance(iAtm, jAtm);
             let bondData = data.bonds.get(pair);
             bondData.count++;
             bondData.avgLen += distance;
-            bondData.totEnergy += core.morse(bond.potential, distance);
+            bondData.totEnergy += core.morse(potential, distance);
         }
         for (let [, bondData] of data.bonds) {
             bondData.avgLen /= bondData.count;
@@ -246,8 +246,8 @@ let core = {
 
     totalEnergy() {
         let energy = 0;
-        for (let bond of structure.bonds) {
-            energy += this.morse(bond.potential, this.distance(bond.iAtm, bond.jAtm));
+        for (let {potential, iAtm, jAtm} of structure.bonds) {
+            energy += this.morse(potential, this.distance(iAtm, jAtm));
         }
         return energy;
     },

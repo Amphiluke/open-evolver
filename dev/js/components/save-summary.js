@@ -5,6 +5,17 @@ import app from "../app.js";
 import structure from "../structure.js";
 import templates from "../templates.js";
 
+function nodeVisitor(name, node) {
+    if (node instanceof Map) {
+        let result = Object.create(null);
+        for (let [key, value] of node) {
+            result[key] = value;
+        }
+        return result;
+    }
+    return node;
+}
+
 let saveSummary = Object.assign(new AbstractDialog(".oe-save-summary-form"), {
     data: null,
 
@@ -22,7 +33,7 @@ let saveSummary = Object.assign(new AbstractDialog(".oe-save-summary-form"), {
                     text = templates.get("summary")(this.data);
                     break;
                 case "application/json":
-                    text = JSON.stringify(this.data, null, 2);
+                    text = JSON.stringify(this.data, nodeVisitor, 2);
                     break;
                 default:
                     text = "TBD";

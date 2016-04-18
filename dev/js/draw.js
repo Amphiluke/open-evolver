@@ -144,11 +144,11 @@ let draw = {
     addSceneAtoms() {
         let Mesh = THREE.Mesh,
             group = assets3.group;
-        for (let atom of structure.structure.atoms) {
-            let atom3 = new Mesh(atomGeometries.get(atom.el), atomMaterials.get(atom.el));
-            atom3.position.x = atom.x;
-            atom3.position.y = atom.y;
-            atom3.position.z = atom.z;
+        for (let {el, x, y, z} of structure.structure.atoms) {
+            let atom3 = new Mesh(atomGeometries.get(el), atomMaterials.get(el));
+            atom3.position.x = x;
+            atom3.position.y = y;
+            atom3.position.z = z;
             group.add(atom3);
         }
     },
@@ -159,9 +159,7 @@ let draw = {
             group = assets3.group,
             atoms = structure.structure.atoms,
             bindMap = new Int8Array(atoms.length);
-        for (let bond of structure.structure.bonds) {
-            let iAtm = bond.iAtm;
-            let jAtm = bond.jAtm;
+        for (let {type, iAtm, jAtm} of structure.structure.bonds) {
             bindMap[iAtm] = bindMap[jAtm] = 1;
             let bondGeometry = new THREE.Geometry();
             let atom = atoms[iAtm];
@@ -170,7 +168,7 @@ let draw = {
             atom = atoms[jAtm];
             bondGeometry.vertices.push(new Vector3(atom.x, atom.y, atom.z));
             bondGeometry.colors.push(colors.get(presets.get(atom.el).color));
-            if (bond.type === "x") {
+            if (type === "x") {
                 bondGeometry.computeLineDistances();
                 group.add(new Line(bondGeometry, bondMaterials.get("extra"), THREE.LineStrip));
             } else {
@@ -194,10 +192,10 @@ let draw = {
         let Points = THREE.Points,
             Vector3 = THREE.Vector3,
             group = assets3.group;
-        for (let atom of structure.structure.atoms) {
+        for (let {el, x, y, z} of structure.structure.atoms) {
             let pointGeometry = new THREE.Geometry();
-            pointGeometry.vertices.push(new Vector3(atom.x, atom.y, atom.z));
-            group.add(new Points(pointGeometry, pointMaterials.get(atom.el)));
+            pointGeometry.vertices.push(new Vector3(x, y, z));
+            group.add(new Points(pointGeometry, pointMaterials.get(el)));
         }
     },
 

@@ -40,7 +40,7 @@ let structureUtils = Object.assign(new Observer(), {
                 }
             }
             // Add extra-graph pairs
-            pairList.push(...pairList.map(pair => "x-" + pair));
+            pairList.push(...pairList.map(pair => `x-${pair}`));
         }
         this.trigger("updateStructure", rescanAtoms !== false);
         if (fromWorker !== true) {
@@ -65,12 +65,12 @@ let structureUtils = Object.assign(new Observer(), {
     getCenterOfMass() {
         let result = {x: 0, y: 0, z: 0};
         let mass = 0;
-        for (let atom of structure.atoms) {
-            const atomicMass = utils.atomicMasses[atom.el];
+        for (let {el, x, y, z} of structure.atoms) {
+            const atomicMass = utils.atomicMasses[el];
             mass += atomicMass;
-            result.x += atomicMass * atom.x;
-            result.y += atomicMass * atom.y;
-            result.z += atomicMass * atom.z;
+            result.x += atomicMass * x;
+            result.y += atomicMass * y;
+            result.z += atomicMass * z;
         }
         result.x /= mass;
         result.y /= mass;

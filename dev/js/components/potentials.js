@@ -71,10 +71,10 @@ let potentials = Object.assign(new AbstractDialog(".oe-potential-form"), {
     show() {
         let atoms = structure.structure.atoms,
             pairs = new Set();
-        for (let bond of structure.structure.bonds) {
-            let prefix = (bond.type === "x") ? "x-" : "";
-            let el1 = atoms[bond.iAtm].el;
-            let el2 = atoms[bond.jAtm].el;
+        for (let {type, iAtm, jAtm} of structure.structure.bonds) {
+            let prefix = (type === "x") ? "x-" : "";
+            let el1 = atoms[iAtm].el;
+            let el2 = atoms[jAtm].el;
             // Add both variants AB and BA to simplify further search
             pairs.add(prefix + el1 + el2).add(prefix + el2 + el1);
         }

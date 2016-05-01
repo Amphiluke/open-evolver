@@ -33,12 +33,12 @@
         </tr>
     </thead>
     <tbody>
-        <% for (let [pair, potential] of data.potentials) { %>
+        <% for (let [pair, {D0, R0, w0}] of data.potentials) { %>
             <tr>
                 <td><%- pair %></td>
-                <td><%= potential.D0.toFixed(5) %></td>
-                <td><%= potential.R0.toFixed(5) %></td>
-                <td><%= potential.w0.toFixed(5) %></td>
+                <td><%= D0.toFixed(5) %></td>
+                <td><%= R0.toFixed(5) %></td>
+                <td><%= w0.toFixed(5) %></td>
             </tr>
         <% } %>
     </tbody>

@@ -57,9 +57,8 @@ let graph = Object.assign(new AbstractDialog(".oe-graph-form"), {
     },
 
     resetHTML() {
-        let pairList = structure.pairList;
         this.$el.find(".oe-cutoffs")
-            .html(templates.get("cutoffs")({pairs: pairList.slice(0, pairList.length / 2)}))
+            .html(templates.get("cutoffs")({pairs: structure.getPairList("basic")}))
             .find(".oe-cutoff").eq(0).addClass("active");
     },
 

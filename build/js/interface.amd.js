@@ -241,8 +241,7 @@ define("components/graph.amd.js", ["exports", "jquery", "./abstract-dialog.amd.j
       return minBound + (value - min) * (maxBound - minBound) / (max - min);
     },
     resetHTML() {
-      let pairList = _structureAmd2.default.pairList;
-      this.$el.find(".oe-cutoffs").html(_templatesAmd2.default.get("cutoffs")({pairs: pairList.slice(0, pairList.length / 2)})).find(".oe-cutoff").eq(0).addClass("active");
+      this.$el.find(".oe-cutoffs").html(_templatesAmd2.default.get("cutoffs")({pairs: _structureAmd2.default.getPairList("basic")})).find(".oe-cutoff").eq(0).addClass("active");
     },
     updateGraph(pair, cutoff) {
       _workerAmd2.default.invoke("reconnectPairs", {
@@ -328,7 +327,7 @@ define("components/potentials.amd.js", ["exports", "jquery", "./abstract-dialog.
       }
     },
     resetHTML() {
-      this.$el.find("ul.oe-potentials").html(_templatesAmd2.default.get("potentials")({pairs: _structureAmd2.default.pairList}));
+      this.$el.find("ul.oe-potentials").html(_templatesAmd2.default.get("potentials")({pairs: _structureAmd2.default.getPairList()}));
     },
     apply() {
       let potentials = new Map();
@@ -626,7 +625,7 @@ define("components/appearance.amd.js", ["exports", "jquery", "./abstract-dialog.
   let appearance = Object.assign(new _abstractDialogAmd2.default(".oe-appearance-form"), {
     handleUpdateStructure(rescanAtoms) {
       if (rescanAtoms) {
-        (0, _jquery2.default)("#oe-appearance-element").html("<option selected>" + _structureAmd2.default.atomList.join("</option><option>") + "</option>");
+        (0, _jquery2.default)("#oe-appearance-element").html("<option selected>" + _structureAmd2.default.getAtomList().join("</option><option>") + "</option>");
         this.setCurrElementColor();
       }
     },
@@ -700,30 +699,6 @@ define("components/abstract-dialog.amd.js", ["exports", "../eventful.amd.js"], f
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {default: obj};
   }
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-  function _possibleConstructorReturn(self, call) {
-    if (!self) {
-      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }
-    return call && (typeof call === "object" || typeof call === "function") ? call : self;
-  }
-  function _inherits(subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-    }
-    subClass.prototype = Object.create(superClass && superClass.prototype, {constructor: {
-        value: subClass,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }});
-    if (superClass)
-      Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }
   let events = [{
     type: "click",
     filter: ".oe-apply",
@@ -743,37 +718,34 @@ define("components/abstract-dialog.amd.js", ["exports", "../eventful.amd.js"], f
       this.handleGlobalKeyUp(...params);
     }
   }];
-  let _class = function(_Eventful) {
-    _inherits(_class, _Eventful);
-    function _class($el) {
-      _classCallCheck(this, _class);
-      var _this = _possibleConstructorReturn(this, _Eventful.call(this, $el));
-      _this.listen(events);
-      return _this;
+  exports.default = class extends _eventfulAmd2.default {
+    constructor($el) {
+      super($el);
+      this.listen(events);
     }
-    _class.prototype.handleApply = function handleApply() {
+    handleApply() {
       this.apply();
       this.hide();
-    };
-    _class.prototype.handleDiscard = function handleDiscard() {
+    }
+    handleDiscard() {
       this.discard();
       this.hide();
-    };
-    _class.prototype.handleGlobalKeyUp = function handleGlobalKeyUp(e) {
+    }
+    handleGlobalKeyUp(e) {
       if (e.which === 27) {
         this.discard();
         this.hide();
       }
-    };
-    _class.prototype.apply = function apply() {};
-    _class.prototype.discard = function discard() {};
-    _class.prototype.show = function show() {
+    }
+    apply() {}
+    discard() {}
+    show() {
       this.$el.removeClass("hidden");
-    };
-    _class.prototype.hide = function hide() {
+    }
+    hide() {
       this.$el.addClass("hidden");
-    };
-    _class.prototype.fix = function fix(fields) {
+    }
+    fix(fields) {
       if (!fields) {
         fields = this.$el[0].elements;
       }
@@ -788,13 +760,11 @@ define("components/abstract-dialog.amd.js", ["exports", "../eventful.amd.js"], f
           this.fix(field.options);
         }
       }
-    };
-    _class.prototype.reset = function reset() {
+    }
+    reset() {
       this.$el[0].reset();
-    };
-    return _class;
-  }(_eventfulAmd2.default);
-  exports.default = _class;
+    }
+  };
 });
 
 })();
@@ -1233,20 +1203,14 @@ define("eventful.amd.js", ["exports", "./observer.amd.js", "jquery"], function(e
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {default: obj};
   }
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
   function to$(target) {
     return target && target.jquery ? target : (0, _jquery2.default)(target);
   }
-  let _class = function() {
-    function _class($el) {
-      _classCallCheck(this, _class);
+  exports.default = class {
+    constructor($el) {
       this.$el = to$($el);
     }
-    _class.prototype.listen = function listen(config) {
+    listen(config) {
       for (let {type,
         owner,
         filter,
@@ -1258,10 +1222,8 @@ define("eventful.amd.js", ["exports", "./observer.amd.js", "jquery"], function(e
           to$(owner || this.$el).on(type, filter || null, handlerFn.bind(this));
         }
       }
-    };
-    return _class;
-  }();
-  exports.default = _class;
+    }
+  };
 });
 
 })();
@@ -1270,34 +1232,26 @@ var define = System.amdDefine;
 define("cacheable.amd.js", ["exports"], function(exports) {
   "use strict";
   Object.defineProperty(exports, "__esModule", {value: true});
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
   let cacheRegistry = new WeakMap();
-  let _class = function() {
-    function _class(createFn) {
-      _classCallCheck(this, _class);
+  exports.default = class {
+    constructor(createFn) {
       Object.defineProperty(this, "create", {
         configurable: true,
         value: createFn
       });
       cacheRegistry.set(this, new Map());
     }
-    _class.prototype.get = function get(item) {
+    get(item) {
       let cache = cacheRegistry.get(this);
       if (!cache.has(item)) {
         cache.set(item, this.create(item));
       }
       return cache.get(item);
-    };
-    _class.prototype.renew = function renew(item) {
+    }
+    renew(item) {
       cacheRegistry.get(this).delete(item);
-    };
-    return _class;
-  }();
-  exports.default = _class;
+    }
+  };
 });
 
 })();
@@ -1333,8 +1287,8 @@ define("utils.amd.js", ["exports", "./app.amd.js"], function(exports, _appAmd) {
         }
       });
     },
-    getBlobURL(data, type) {
-      let blob = data instanceof Blob ? data : new Blob([data], {type: type || "text/plain"});
+    getBlobURL(data, type = "text/plain") {
+      let blob = data instanceof Blob ? data : new Blob([data], {type});
       if (blobUrl) {
         URL.revokeObjectURL(blobUrl);
       }
@@ -1357,34 +1311,28 @@ var define = System.amdDefine;
 define("observer.amd.js", ["exports"], function(exports) {
   "use strict";
   Object.defineProperty(exports, "__esModule", {value: true});
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
   let handlerRegistry = new WeakMap();
-  let Observer = function() {
-    function Observer() {
-      _classCallCheck(this, Observer);
+  class Observer {
+    constructor() {
       handlerRegistry.set(this, new Map());
     }
-    Observer.on = function on(...params) {
+    static on(...params) {
       return Observer.prototype.on.apply(Observer, params);
-    };
-    Observer.off = function off(...params) {
+    }
+    static off(...params) {
       return Observer.prototype.off.apply(Observer, params);
-    };
-    Observer.trigger = function trigger(...params) {
+    }
+    static trigger(...params) {
       return Observer.prototype.trigger.apply(Observer, params);
-    };
-    Observer.prototype.on = function on(event, handler) {
+    }
+    on(event, handler) {
       let handlers = handlerRegistry.get(this);
       if (!handlers.has(event)) {
         handlers.set(event, []);
       }
       handlers.get(event).push(handler);
-    };
-    Observer.prototype.off = function off(event, handler) {
+    }
+    off(event, handler) {
       let handlers = handlerRegistry.get(this);
       if (!handlers.has(event)) {
         return;
@@ -1402,17 +1350,16 @@ define("observer.amd.js", ["exports"], function(exports) {
         handlers.get(event).length = 0;
         handlers.delete(event);
       }
-    };
-    Observer.prototype.trigger = function trigger(event, ...params) {
+    }
+    trigger(event, ...params) {
       let handlers = handlerRegistry.get(this);
       if (handlers.has(event)) {
         for (let handler of handlers.get(event)) {
           handler.apply(null, params);
         }
       }
-    };
-    return Observer;
-  }();
+    }
+  }
   handlerRegistry.set(Observer, new Map());
   exports.default = Observer;
 });
@@ -1482,9 +1429,13 @@ define("worker.amd.js", ["exports", "./observer.amd.js", "./app.amd.js"], functi
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {default: obj};
   }
+  let calcWorker = new Worker("js/calc.js");
   let blockingMethod = "ready";
   _appAmd2.default.busy = true;
   let worker = Object.assign(new _observerAmd2.default(), {invoke(method, data) {
+      if (blockingMethod) {
+        throw new Error(`Unable to run the method “${method}” as the blocking method “${blockingMethod}” is still running`);
+      }
       blockingMethod = method;
       _appAmd2.default.busy = true;
       calcWorker.postMessage({
@@ -1492,15 +1443,14 @@ define("worker.amd.js", ["exports", "./observer.amd.js", "./app.amd.js"], functi
         data
       });
     }});
-  let calcWorker = new Worker("js/calc.js");
-  calcWorker.addEventListener("message", (e) => {
-    let method = e.data && e.data.method;
+  calcWorker.addEventListener("message", ({data: {method,
+      data} = {}}) => {
     if (method) {
       if (method === blockingMethod) {
         _appAmd2.default.busy = false;
         blockingMethod = null;
       }
-      worker.trigger(method, e.data.data);
+      worker.trigger(method, data);
     }
   });
   calcWorker.addEventListener("error", (e) => {
@@ -1528,28 +1478,42 @@ define("structure.amd.js", ["exports", "./observer.amd.js", "./app.amd.js", "./u
     bonds: [],
     potentials: new Map()
   };
-  let atomList = [];
-  let pairList = [];
+  let atomSet = new Set();
+  let pairSet = new Set();
   let structureUtils = Object.assign(new _observerAmd2.default(), {
+    getPairList(type) {
+      switch (type) {
+        case "basic":
+          return [...pairSet].filter((pair) => !pair.startsWith("x-"));
+        case "extra":
+          return [...pairSet].filter((pair) => pair.startsWith("x-"));
+        default:
+          return [...pairSet];
+      }
+    },
+    getPairSet(type) {
+      return new Set(this.getPairList(type));
+    },
+    getAtomList() {
+      return [...atomSet];
+    },
+    getAtomSet() {
+      return new Set(this.getAtomList());
+    },
     overwrite(newStructure, rescanAtoms = true, fromWorker = false) {
       ({name: structure.name = "",
         atoms: structure.atoms = [],
         bonds: structure.bonds = [],
         potentials: structure.potentials = new Map()} = newStructure);
       if (rescanAtoms !== false) {
-        atomList.length = pairList.length = 0;
-        for (let {el} of structure.atoms) {
-          if (atomList.indexOf(el) === -1) {
-            atomList.push(el);
-          }
-        }
-        for (let i = 0,
-            len = atomList.length; i < len; i++) {
-          for (let j = i; j < len; j++) {
-            pairList.push(atomList[i] + atomList[j]);
-          }
+        atomSet = new Set(structure.atoms.map((atom) => atom.el));
+        let atomList = this.getAtomList();
+        let pairList = [];
+        for (let [i, el] of atomList.entries()) {
+          pairList.push(...atomList.slice(i).map((elem) => el + elem));
         }
         pairList.push(...pairList.map((pair) => `x-${pair}`));
+        pairSet = new Set(pairList);
       }
       this.trigger("updateStructure", rescanAtoms !== false);
       if (fromWorker !== true) {
@@ -1615,24 +1579,10 @@ define("structure.amd.js", ["exports", "./observer.amd.js", "./app.amd.js", "./u
       this.overwrite(structure, false, false);
     }
   });
-  Object.defineProperties(structureUtils, {
-    structure: {
-      enumerable: true,
-      get() {
-        return structure;
-      }
-    },
-    atomList: {
-      enumerable: true,
-      get() {
-        return atomList.slice(0);
-      }
-    },
-    pairList: {
-      enumerable: true,
-      get() {
-        return pairList.slice(0);
-      }
+  Object.defineProperty(structureUtils, "structure", {
+    enumerable: true,
+    get() {
+      return structure;
     }
   });
   exports.default = structureUtils;

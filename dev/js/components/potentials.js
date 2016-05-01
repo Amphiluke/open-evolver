@@ -41,7 +41,7 @@ let potentials = Object.assign(new AbstractDialog(".oe-potential-form"), {
     },
 
     resetHTML() {
-        this.$el.find("ul.oe-potentials").html(templates.get("potentials")({pairs: structure.pairList}));
+        this.$el.find("ul.oe-potentials").html(templates.get("potentials")({pairs: structure.getPairList()}));
     },
 
     apply() {

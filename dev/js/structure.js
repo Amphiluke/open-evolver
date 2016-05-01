@@ -10,15 +10,47 @@ let structure = {
     potentials: new Map()
 };
 
-let atomList = [];
-let pairList = [];
+let atomSet = new Set();
+let pairSet = new Set();
 
 let structureUtils = Object.assign(new Observer(), {
+    /**
+     * Get a list of all possible (chemically bound or not) atomic pairs for the current structure
+     * @param {String} [type] Pairs of which graph type to return: basic, extra, or both
+     * @returns {Array}
+     */
+    getPairList(type) {
+        switch (type) {
+            case "basic":
+                return [...pairSet].filter(pair => !pair.startsWith("x-"));
+            case "extra":
+                return [...pairSet].filter(pair => pair.startsWith("x-"));
+            default:
+                return [...pairSet];
+        }
+    },
+
+    getPairSet(type) {
+        return new Set(this.getPairList(type));
+    },
+
+    /**
+     * Get a list of all chemical elements present in the current structure
+     * @returns {Array}
+     */
+    getAtomList() {
+        return [...atomSet];
+    },
+
+    getAtomSet() {
+        return new Set(this.getAtomList());
+    },
+
     /**
      * Completely overwrites the `structure` object. Call this method when a new file is opened,
      * or when the structure needs to be updated according the result of a worker calculations
      * @param {Object} newStructure
-     * @param {Boolean} [rescanAtoms] Pass `false` to prevent `atomList` and `pairList` update.
+     * @param {Boolean} [rescanAtoms] Pass `false` to prevent `atomSet` and `pairSet` update.
      * By default they are updated as well
      * @param {Boolean} [fromWorker] For internal use. Pass `true` to prevent notifying the worker
      */
@@ -26,21 +58,15 @@ let structureUtils = Object.assign(new Observer(), {
         ({name: structure.name = "", atoms: structure.atoms = [], bonds: structure.bonds = [],
             potentials: structure.potentials = new Map()} = newStructure);
         if (rescanAtoms !== false) {
-            atomList.length = pairList.length = 0;
-            for (let {el} of structure.atoms) {
-                if (atomList.indexOf(el) === -1) {
-                    // Using Set instead of Array would probably be better but it would also increase
-                    // complexity of further processing as well as complexity of pair list construction
-                    atomList.push(el);
-                }
-            }
-            for (let i = 0, len = atomList.length; i < len; i++) {
-                for (let j = i; j < len; j++) {
-                    pairList.push(atomList[i] + atomList[j]);
-                }
+            atomSet = new Set(structure.atoms.map(atom => atom.el));
+            let atomList = this.getAtomList();
+            let pairList = [];
+            for (let [i, el] of atomList.entries()) {
+                pairList.push(...atomList.slice(i).map(elem => el + elem));
             }
             // Add extra-graph pairs
             pairList.push(...pairList.map(pair => `x-${pair}`));
+            pairSet = new Set(pairList);
         }
         this.trigger("updateStructure", rescanAtoms !== false);
         if (fromWorker !== true) {
@@ -106,34 +132,10 @@ let structureUtils = Object.assign(new Observer(), {
     }
 });
 
-Object.defineProperties(structureUtils, {
-    structure: {
-        enumerable: true,
-        get() {
-            return structure; // not safe but fast… Freezing would result in performance degradation
-        }
-    },
-
-    /**
-     * A list of all atom types present in the current structure
-     * @type {Array}
-     */
-    atomList: {
-        enumerable: true,
-        get() {
-            return atomList.slice(0);
-        }
-    },
-
-    /**
-     * A list of all possible (chemically bound or not) atomic pairs for the current structure
-     * @type {Array}
-     */
-    pairList: {
-        enumerable: true,
-        get() {
-            return pairList.slice(0);
-        }
+Object.defineProperty(structureUtils, "structure", {
+    enumerable: true,
+    get() {
+        return structure; // not safe but fast… Freezing would result in performance degradation
     }
 });
 

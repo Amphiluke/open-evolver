@@ -31,8 +31,8 @@ let utils = {
         });
     },
 
-    getBlobURL(data, type) {
-        let blob = (data instanceof Blob) ? data : new Blob([data], {type: type || "text/plain"});
+    getBlobURL(data, type = "text/plain") {
+        let blob = (data instanceof Blob) ? data : new Blob([data], {type});
         if (blobUrl) {
             // Blob URLs are used only short periods of time (e.g. at the moment a hyperlink is clicked).
             // So, revoke the previous URL before creating the new one.

@@ -59,9 +59,9 @@ let api = {
         return {energy: core.totalEnergy(), norm: core.norm};
     },
 
-    reconnectPairs(data) {
-        let [el1, el2] = data.pair.match(/[A-Z][^A-Z]*/g),
-            cutoff2 = data.cutoff * data.cutoff,
+    reconnectPairs({pair, cutoff}) {
+        let [el1, el2] = pair.match(/[A-Z][^A-Z]*/g),
+            cutoff2 = cutoff * cutoff,
             {atoms, bonds} = structure;
         for (let i = 0, aLen = atoms.length; i < aLen; i++) {
             let jEl;
@@ -133,12 +133,11 @@ let api = {
     }
 };
 
-self.onmessage = function (e) {
-    let method = e.data && e.data.method;
+self.onmessage = function ({data: {method, data} = {}}) {
     if (typeof api[method] === "function") {
         self.postMessage({
             method,
-            data: api[method](e.data.data)
+            data: api[method](data)
         });
     }
 };
@@ -219,16 +218,16 @@ let core = {
         return Math.sqrt(this.sqrDistance(atom1, atom2));
     },
 
-    morse(params, distance) {
-        let exponent = Math.exp(params.b * (params.R0 - distance));
-        return params.D0 * exponent * (exponent - 2);
+    morse({D0, R0, b}, distance) {
+        let exponent = Math.exp(b * (R0 - distance));
+        return D0 * exponent * (exponent - 2);
     },
 
-    derivative(params, distance) {
-        let cA = params.D0 * Math.exp(2 * params.b * params.R0),
-            cB = -2 * params.b,
-            cC = -2 * Math.sqrt(params.D0 * cA),
-            cD = Math.exp(-params.b * distance);
+    derivative({D0, R0, b}, distance) {
+        let cA = D0 * Math.exp(2 * b * R0),
+            cB = -2 * b,
+            cC = -2 * Math.sqrt(D0 * cA),
+            cD = Math.exp(-b * distance);
         return cB * cD * (cA * cD + 0.5 * cC);
     },
 

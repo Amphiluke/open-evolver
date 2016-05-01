@@ -8,7 +8,7 @@ let appearance = Object.assign(new AbstractDialog(".oe-appearance-form"), {
     handleUpdateStructure(rescanAtoms) {
         if (rescanAtoms) {
             $("#oe-appearance-element")
-                .html("<option selected>" + structure.atomList.join("</option><option>") + "</option>");
+                .html("<option selected>" + structure.getAtomList().join("</option><option>") + "</option>");
             this.setCurrElementColor();
         }
     },

@@ -8,12 +8,6 @@ let view = Object.assign(new Eventful("#oe-view"), {
         startRot: 0
     },
 
-    handleACKClick(e) {
-        if (e.target === e.delegateTarget) {
-            e.target.className += " hidden";
-        }
-    },
-
     handleDragEnterOver(e) {
         e.preventDefault();
         if (e.type === "dragenter") {
@@ -60,18 +54,27 @@ let view = Object.assign(new Eventful("#oe-view"), {
 
     handleRotate(e) {
         draw.rotation = this.rotData.startRot + (e.pageX - this.rotData.startX) * 0.02;
+    },
+
+    handleWndResize() {
+        if (!this._resizeTimer) {
+            this._resizeTimer = setTimeout(() => {
+                draw.resize();
+                this._resizeTimer = undefined;
+            }, 300);
+        }
     }
 });
 
 view.listen([
-    {type: "click", owner: ".oe-acknowledgements", handler: "handleACKClick"},
     {type: "dragenter dragover", handler: "handleDragEnterOver"},
     {type: "dragleave", handler: "handleDragLeave"},
     {type: "drop", handler: "handleDrop"},
     {type: "wheel", handler: "handleWheelZoom"},
-    {type: "mousedown", handler: "handleStartRotate"}
+    {type: "mousedown", handler: "handleStartRotate"},
+    {type: "resize", owner: window, handler: "handleWndResize"}
 ]);
 
-view.$el.append(draw.canvas);
+draw.setup(view.$el.children("canvas")[0]);
 
 export default view;

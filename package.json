@@ -15,22 +15,22 @@
     "url": "https://github.com/Amphiluke/open-evolver.git"
   },
   "devDependencies": {
-    "babel-plugin-transform-es2015-modules-amd": "^6.5.0",
+    "babel-plugin-transform-es2015-modules-amd": "^6.18.0",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "gulp-files-to-json": "^0.2.1",
-    "gulp-less": "^3.0.5",
+    "gulp-less": "^3.3.0",
     "gulp-rename": "^1.2.2",
     "gulp-replace": "^0.5.4",
     "less-plugin-clean-css": "^1.5.1",
-    "lodash-cli": "^4.9.0",
-    "systemjs-builder": "^0.15.15"
+    "lodash-cli": "^4.17.1",
+    "systemjs-builder": "^0.15.34"
   },
   "dependencies": {
-    "jquery": "^2.2.1",
-    "lodash": "^4.9.0",
-    "normalize.css": "^3.0.3",
-    "systemjs": "^0.19.23",
-    "three": "^0.74.0"
+    "jquery": "^3.1.1",
+    "lodash": "^4.17.2",
+    "normalize.css": "^5.0.0",
+    "systemjs": "^0.19.41",
+    "three": "^0.82.1"
   }
 }

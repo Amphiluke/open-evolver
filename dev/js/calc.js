@@ -411,14 +411,14 @@ let core = {
     },
 
     evolve() {
-        var params = this.evolveParams,
+        let params = this.evolveParams,
             functor = this.tuneEvolver(),
             atoms = structure.atoms,
             atomCount = atoms.length,
             factor = 1.2926E-4 * atomCount * params.temperature, // 1.5NkT [eV]
             interval = Math.ceil(params.stepCount / 100),
             progressFactor = 100 / params.stepCount,
-            progressMsg = {method: "evolve:progress"};
+            progressMsg = {method: "evolve:progress", data: 0};
         functor.initialize();
         functor.step(); // pre-calculate current value of gradient before the 1st step
         for (let stepNo = 0, stepCount = params.stepCount; stepNo < stepCount; stepNo++) {

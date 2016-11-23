@@ -71,7 +71,7 @@ formats.ml2 = formats.mol2 = {
     },
 
     parse(fileStr) {
-        var result = {atoms: [], bonds: []},
+        let result = {atoms: [], bonds: []},
             molChunks = fileStr.split("@<TRIPOS>MOLECULE").slice(1),
             atomRE = /@<TRIPOS>ATOM([\s\S]+?)(?:@<TRIPOS>|$)/,
             bondRE = /@<TRIPOS>BOND([\s\S]+?)(?:@<TRIPOS>|$)/,
@@ -131,7 +131,7 @@ export default {
     },
 
     makeHIN(graphType) {
-        var hin = ";The structure was saved in OpenEvolver\nforcefield mm+\n";
+        let hin = ";The structure was saved in OpenEvolver\nforcefield mm+\n";
         if (graphType === "empty") {
             let i = 0;
             for (let {el, x, y, z} of structure.structure.atoms) {

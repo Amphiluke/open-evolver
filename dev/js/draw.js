@@ -1,4 +1,4 @@
-import THREE from "three";
+import * as THREE from "three"; // http://stackoverflow.com/a/40251527
 import Cacheable from "./cacheable.js";
 import structure from "./structure.js";
 
@@ -48,35 +48,45 @@ let bondMaterials = new Cacheable(type => {
     }
 });
 
-let canvas = {el: null, width: 600, height: 500};
+let canvas;
+let assets3;
 
-let assets3 = {
-    scene: new THREE.Scene(),
-    group: new THREE.Object3D(),
-    camera: new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000),
-    spotLight: new THREE.SpotLight(0xFFFFFF),
-    renderer: new THREE.WebGLRenderer()
-};
-
-assets3.spotLight.position.set(-40, 60, 50);
-assets3.scene.add(assets3.group, assets3.spotLight);
-assets3.camera.position.x = 0;
-assets3.camera.position.y = 0;
-assets3.camera.position.z = 20;
-assets3.camera.lookAt(assets3.scene.position);
-assets3.renderer.setClearColor(0x000000);
-assets3.renderer.setSize(canvas.width, canvas.height);
-assets3.renderer.render(assets3.scene, assets3.camera);
-
-canvas.el = assets3.renderer.domElement;
-
+let rotation = 0;
 
 let draw = {
+    setup(canvasEl) {
+        canvas = {el: canvasEl, width: canvasEl.offsetWidth, height: canvasEl.offsetHeight};
+        assets3 = {
+            scene: new THREE.Scene(),
+            group: new THREE.Object3D(),
+            camera: new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000),
+            spotLight: new THREE.SpotLight(0xFFFFFF),
+            renderer: new THREE.WebGLRenderer({canvas: canvasEl})
+        };
+        assets3.spotLight.position.set(-40, 60, 50);
+        assets3.scene.add(assets3.group, assets3.spotLight);
+        assets3.camera.position.x = 0;
+        assets3.camera.position.y = 0;
+        assets3.camera.position.z = 20;
+        assets3.camera.lookAt(assets3.scene.position);
+        assets3.renderer.setClearColor(0x000000);
+        assets3.renderer.setSize(canvas.width, canvas.height);
+        assets3.renderer.render(assets3.scene, assets3.camera);
+    },
+
     get canvas() {
         return canvas.el;
     },
 
-    rotation: 0,
+    get rotation() {
+        return rotation;
+    },
+    set rotation(value) {
+        if (value !== rotation && Number.isFinite(value)) {
+            rotation = value;
+            assets3.group.rotation.y += (rotation - assets3.group.rotation.y) * 0.05;
+        }
+    },
 
     appearance: "graph",
 
@@ -86,13 +96,23 @@ let draw = {
         this.update();
     },
 
+    resize(width = canvas.el.offsetWidth, height = canvas.el.offsetHeight) {
+        if (width > 0 && height > 0 && (width !== canvas.width || height !== canvas.height)) {
+            assets3.camera.aspect = width / height;
+            assets3.camera.updateProjectionMatrix();
+            assets3.renderer.setSize(width, height, false);
+            canvas.width = width;
+            canvas.height = height;
+            this.update();
+        }
+    },
+
     render() {
         this.resetScene();
         this.update();
     },
 
     update() {
-        assets3.group.rotation.y += (this.rotation - assets3.group.rotation.y) * 0.05;
         assets3.renderer.render(assets3.scene, assets3.camera);
         if (this.autoUpdate) {
             requestAnimationFrame(() => this.update());
@@ -210,7 +230,7 @@ let draw = {
     removeAxes() {
         if (this.axes) {
             assets3.scene.remove(this.axes);
-            delete this.axes;
+            this.axes = undefined;
             this.update();
         }
     }

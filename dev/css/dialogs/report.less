@@ -1,3 +1,17 @@
+@import (reference) "../ui";
+
+.oe-report {
+    background:#fff;
+    border-color:@border-light-color;
+    border-radius:0 0 0 5px;
+    border-width:0 0 1px 1px;
+    padding:0 15px;
+    position:absolute;
+    right:0;
+    top:@root-line-height + 3px * 2 + 1px; // top menu height
+    z-index:1;
+}
+
 #oe-report-progress {
     position:relative;
     &:after {

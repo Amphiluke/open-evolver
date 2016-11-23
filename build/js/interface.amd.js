@@ -644,14 +644,14 @@ define("components/appearance.amd.js", ["exports", "jquery", "./abstract-dialog.
       _drawAmd2.default.setBgColor((0, _jquery2.default)("#oe-bg-color").val());
       if (this.tmpClrPresets) {
         _drawAmd2.default.setAtomColors(this.tmpClrPresets);
-        delete this.tmpClrPresets;
+        this.tmpClrPresets = undefined;
       }
       _drawAmd2.default.render();
       this.fix();
     },
     discard() {
       this.reset();
-      delete this.tmpClrPresets;
+      this.tmpClrPresets = undefined;
       this.setCurrElementColor();
     },
     setCurrElementColor() {
@@ -930,7 +930,7 @@ define("file-processing.amd.js", ["exports", "./utils.amd.js", "./structure.amd.
       }
     },
     parse(fileStr) {
-      var result = {
+      let result = {
         atoms: [],
         bonds: []
       },
@@ -987,7 +987,7 @@ define("file-processing.amd.js", ["exports", "./utils.amd.js", "./structure.amd.
       return false;
     },
     makeHIN(graphType) {
-      var hin = ";The structure was saved in OpenEvolver\nforcefield mm+\n";
+      let hin = ";The structure was saved in OpenEvolver\nforcefield mm+\n";
       if (graphType === "empty") {
         let i = 0;
         for (let {el,
@@ -1603,13 +1603,28 @@ var define = System.amdDefine;
 define("draw.amd.js", ["exports", "three", "./cacheable.amd.js", "./structure.amd.js"], function(exports, _three, _cacheableAmd, _structureAmd) {
   "use strict";
   Object.defineProperty(exports, "__esModule", {value: true});
-  var _three2 = _interopRequireDefault(_three);
+  var THREE = _interopRequireWildcard(_three);
   var _cacheableAmd2 = _interopRequireDefault(_cacheableAmd);
   var _structureAmd2 = _interopRequireDefault(_structureAmd);
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {default: obj};
   }
-  let colors = new _cacheableAmd2.default((color) => new _three2.default.Color(color));
+  function _interopRequireWildcard(obj) {
+    if (obj && obj.__esModule) {
+      return obj;
+    } else {
+      var newObj = {};
+      if (obj != null) {
+        for (var key in obj) {
+          if (Object.prototype.hasOwnProperty.call(obj, key))
+            newObj[key] = obj[key];
+        }
+      }
+      newObj.default = obj;
+      return newObj;
+    }
+  }
+  let colors = new _cacheableAmd2.default((color) => new THREE.Color(color));
   let presets = Object.create({
     get(el) {
       return this.hasOwnProperty(el) ? this[el] : this._def;
@@ -1629,69 +1644,90 @@ define("draw.amd.js", ["exports", "three", "./cacheable.amd.js", "./structure.am
   presets.set("H", {radius: 0.7});
   let pointMaterials = new _cacheableAmd2.default((atom) => {
     let preset = presets.get(atom);
-    return new _three2.default.PointsMaterial({
+    return new THREE.PointsMaterial({
       color: preset.color,
       sizeAttenuation: false
     });
   });
   let atomMaterials = new _cacheableAmd2.default((atom) => {
     let preset = presets.get(atom);
-    return new _three2.default.MeshLambertMaterial({color: preset.color});
+    return new THREE.MeshLambertMaterial({color: preset.color});
   });
   let atomGeometries = new _cacheableAmd2.default((atom) => {
     let preset = presets.get(atom);
-    return new _three2.default.SphereGeometry(preset.radius);
+    return new THREE.SphereGeometry(preset.radius);
   });
   let bondMaterials = new _cacheableAmd2.default((type) => {
     if (type === "extra") {
-      return new _three2.default.LineDashedMaterial({
+      return new THREE.LineDashedMaterial({
         dashSize: 0.2,
         gapSize: 0.1,
-        vertexColors: _three2.default.VertexColors
+        vertexColors: THREE.VertexColors
       });
     } else {
-      return new _three2.default.LineBasicMaterial({vertexColors: _three2.default.VertexColors});
+      return new THREE.LineBasicMaterial({vertexColors: THREE.VertexColors});
     }
   });
-  let canvas = {
-    el: null,
-    width: 600,
-    height: 500
-  };
-  let assets3 = {
-    scene: new _three2.default.Scene(),
-    group: new _three2.default.Object3D(),
-    camera: new _three2.default.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000),
-    spotLight: new _three2.default.SpotLight(0xFFFFFF),
-    renderer: new _three2.default.WebGLRenderer()
-  };
-  assets3.spotLight.position.set(-40, 60, 50);
-  assets3.scene.add(assets3.group, assets3.spotLight);
-  assets3.camera.position.x = 0;
-  assets3.camera.position.y = 0;
-  assets3.camera.position.z = 20;
-  assets3.camera.lookAt(assets3.scene.position);
-  assets3.renderer.setClearColor(0x000000);
-  assets3.renderer.setSize(canvas.width, canvas.height);
-  assets3.renderer.render(assets3.scene, assets3.camera);
-  canvas.el = assets3.renderer.domElement;
+  let canvas;
+  let assets3;
+  let rotation = 0;
   let draw = {
+    setup(canvasEl) {
+      canvas = {
+        el: canvasEl,
+        width: canvasEl.offsetWidth,
+        height: canvasEl.offsetHeight
+      };
+      assets3 = {
+        scene: new THREE.Scene(),
+        group: new THREE.Object3D(),
+        camera: new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000),
+        spotLight: new THREE.SpotLight(0xFFFFFF),
+        renderer: new THREE.WebGLRenderer({canvas: canvasEl})
+      };
+      assets3.spotLight.position.set(-40, 60, 50);
+      assets3.scene.add(assets3.group, assets3.spotLight);
+      assets3.camera.position.x = 0;
+      assets3.camera.position.y = 0;
+      assets3.camera.position.z = 20;
+      assets3.camera.lookAt(assets3.scene.position);
+      assets3.renderer.setClearColor(0x000000);
+      assets3.renderer.setSize(canvas.width, canvas.height);
+      assets3.renderer.render(assets3.scene, assets3.camera);
+    },
     get canvas() {
       return canvas.el;
     },
-    rotation: 0,
+    get rotation() {
+      return rotation;
+    },
+    set rotation(value) {
+      if (value !== rotation && Number.isFinite(value)) {
+        rotation = value;
+        assets3.group.rotation.y += (rotation - assets3.group.rotation.y) * 0.05;
+      }
+    },
     appearance: "graph",
     zoom(delta) {
       assets3.camera.position.z += delta;
       assets3.camera.lookAt(assets3.scene.position);
       this.update();
     },
+    resize(width = canvas.el.offsetWidth, height = canvas.el.offsetHeight) {
+      if (width > 0 && height > 0 && (width !== canvas.width || height !== canvas.height)) {
+        assets3.camera.aspect = width / height;
+        assets3.camera.updateProjectionMatrix();
+        assets3.renderer.setSize(width, height, false);
+        canvas.width = width;
+        canvas.height = height;
+        this.update();
+      }
+    },
     render() {
       this.resetScene();
       this.update();
     },
     update() {
-      assets3.group.rotation.y += (this.rotation - assets3.group.rotation.y) * 0.05;
       assets3.renderer.render(assets3.scene, assets3.camera);
       if (this.autoUpdate) {
         requestAnimationFrame(() => this.update());
@@ -1734,7 +1770,7 @@ define("draw.amd.js", ["exports", "three", "./cacheable.amd.js", "./structure.am
       }
     },
     addSceneAtoms() {
-      let Mesh = _three2.default.Mesh,
+      let Mesh = THREE.Mesh,
           group = assets3.group;
       for (let {el,
         x,
@@ -1748,8 +1784,8 @@ define("draw.amd.js", ["exports", "three", "./cacheable.amd.js", "./structure.am
       }
     },
     addSceneBonds() {
-      let Line = _three2.default.Line,
-          Vector3 = _three2.default.Vector3,
+      let Line = THREE.Line,
+          Vector3 = THREE.Vector3,
           group = assets3.group,
           atoms = _structureAmd2.default.structure.atoms,
           bindMap = new Int8Array(atoms.length);
@@ -1757,7 +1793,7 @@ define("draw.amd.js", ["exports", "three", "./cacheable.amd.js", "./structure.am
         iAtm,
         jAtm} of _structureAmd2.default.structure.bonds) {
         bindMap[iAtm] = bindMap[jAtm] = 1;
-        let bondGeometry = new _three2.default.Geometry();
+        let bondGeometry = new THREE.Geometry();
         let atom = atoms[iAtm];
         bondGeometry.vertices.push(new Vector3(atom.x, atom.y, atom.z));
         bondGeometry.colors.push(colors.get(presets.get(atom.el).color));
@@ -1766,15 +1802,15 @@ define("draw.amd.js", ["exports", "three", "./cacheable.amd.js", "./structure.am
         bondGeometry.colors.push(colors.get(presets.get(atom.el).color));
         if (type === "x") {
           bondGeometry.computeLineDistances();
-          group.add(new Line(bondGeometry, bondMaterials.get("extra"), _three2.default.LineStrip));
+          group.add(new Line(bondGeometry, bondMaterials.get("extra"), THREE.LineStrip));
         } else {
           group.add(new Line(bondGeometry, bondMaterials.get("basic")));
         }
       }
-      let Points = _three2.default.Points;
+      let Points = THREE.Points;
       let i = bindMap.indexOf(0);
       while (i !== -1) {
-        let pointGeometry = new _three2.default.Geometry();
+        let pointGeometry = new THREE.Geometry();
         let atom = atoms[i];
         pointGeometry.vertices.push(new Vector3(atom.x, atom.y, atom.z));
         group.add(new Points(pointGeometry, pointMaterials.get(atom.el)));
@@ -1782,21 +1818,21 @@ define("draw.amd.js", ["exports", "three", "./cacheable.amd.js", "./structure.am
       }
     },
     addScenePoints() {
-      let Points = _three2.default.Points,
-          Vector3 = _three2.default.Vector3,
+      let Points = THREE.Points,
+          Vector3 = THREE.Vector3,
           group = assets3.group;
       for (let {el,
         x,
         y,
         z} of _structureAmd2.default.structure.atoms) {
-        let pointGeometry = new _three2.default.Geometry();
+        let pointGeometry = new THREE.Geometry();
         pointGeometry.vertices.push(new Vector3(x, y, z));
         group.add(new Points(pointGeometry, pointMaterials.get(el)));
       }
     },
     addAxes() {
       if (!this.axes) {
-        this.axes = new _three2.default.AxisHelper(20);
+        this.axes = new THREE.AxisHelper(20);
         assets3.scene.add(this.axes);
         this.update();
       }
@@ -1804,7 +1840,7 @@ define("draw.amd.js", ["exports", "three", "./cacheable.amd.js", "./structure.am
     removeAxes() {
       if (this.axes) {
         assets3.scene.remove(this.axes);
-        delete this.axes;
+        this.axes = undefined;
         this.update();
       }
     }
@@ -1829,11 +1865,6 @@ define("components/view.amd.js", ["exports", "../eventful.amd.js", "../app.amd.j
     rotData: {
       startX: 0,
       startRot: 0
-    },
-    handleACKClick(e) {
-      if (e.target === e.delegateTarget) {
-        e.target.className += " hidden";
-      }
     },
     handleDragEnterOver(e) {
       e.preventDefault();
@@ -1873,13 +1904,17 @@ define("components/view.amd.js", ["exports", "../eventful.amd.js", "../app.amd.j
     },
     handleRotate(e) {
       _drawAmd2.default.rotation = this.rotData.startRot + (e.pageX - this.rotData.startX) * 0.02;
+    },
+    handleWndResize() {
+      if (!this._resizeTimer) {
+        this._resizeTimer = setTimeout(() => {
+          _drawAmd2.default.resize();
+          this._resizeTimer = undefined;
+        }, 300);
+      }
     }
   });
   view.listen([{
-    type: "click",
-    owner: ".oe-acknowledgements",
-    handler: "handleACKClick"
-  }, {
     type: "dragenter dragover",
     handler: "handleDragEnterOver"
   }, {
@@ -1894,8 +1929,12 @@ define("components/view.amd.js", ["exports", "../eventful.amd.js", "../app.amd.j
   }, {
     type: "mousedown",
     handler: "handleStartRotate"
+  }, {
+    type: "resize",
+    owner: window,
+    handler: "handleWndResize"
   }]);
-  view.$el.append(_drawAmd2.default.canvas);
+  _drawAmd2.default.setup(view.$el.children("canvas")[0]);
   exports.default = view;
 });
 

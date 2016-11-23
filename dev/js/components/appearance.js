@@ -30,7 +30,7 @@ let appearance = Object.assign(new AbstractDialog(".oe-appearance-form"), {
         draw.setBgColor($("#oe-bg-color").val());
         if (this.tmpClrPresets) {
             draw.setAtomColors(this.tmpClrPresets);
-            delete this.tmpClrPresets;
+            this.tmpClrPresets = undefined;
         }
         draw.render();
         this.fix();
@@ -38,7 +38,7 @@ let appearance = Object.assign(new AbstractDialog(".oe-appearance-form"), {
 
     discard() {
         this.reset();
-        delete this.tmpClrPresets;
+        this.tmpClrPresets = undefined;
         this.setCurrElementColor();
     },
 

@@ -3,6 +3,45 @@ import app from "./app.js";
 import utils from "./utils.js";
 import worker from "./worker.js";
 
+/**
+ * An atom record in a structure
+ * @typedef {Object} Atom
+ * @property {String} el - Element
+ * @property {Number} x - X-coordinate of an atom
+ * @property {Number} y - Y-coordinate of an atom
+ * @property {Number} z - Z-coordinate of an atom
+ */
+
+/**
+ * A bond record in a structure's bond registry
+ * @typedef {Object} Bond
+ * @property {Number} iAtm - The bond's first atom index in the `atoms` array
+ * @property {Number} jAtm - The bond's second atom index in the `atoms` array
+ * @property {String} type - Bond type (e.g. "s" for single bond, "a" for aromatic, "x" for extra)
+ * @property {Object} potential - A reference to the Potential record for this bond
+ */
+
+/**
+ * A bond potential parameters
+ * @typedef {Object} Potential
+ * @property {Number} D0 - Dissociation energy (in eV)
+ * @property {Number} R0 - Equilibrium bond distance (in Å)
+ * @property {Number} w0 - Vibration frequency (in 1/cm)
+ * @property {Number} b - Potential stiffness coefficient (in 1/Å)
+ */
+
+/**
+ * Current structure data
+ * @typedef {Object} Structure
+ * @property {String} name - The name of a structure
+ * @property {Array.<Atom>} atoms - Atom list
+ * @property {Array.<Bond>} bonds - Bond list
+ * @property {Map.<Potential>} potentials - Maps atom pair strings onto potential data objects
+ */
+
+/**
+ * @type {Structure}
+ */
 let structure = {
     name: "",
     atoms: [],

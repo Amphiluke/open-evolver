@@ -14,7 +14,7 @@ gulp.task("dependencies", () => {
     let deps = [
         "node_modules/jquery/dist/jquery.min.js",
         "node_modules/systemjs/dist/system.js",
-        "node_modules/three/three.min.js",
+        "node_modules/three/build/three.min.js",
         "node_modules/normalize.css/normalize.css"
     ];
     return gulp.src(deps).pipe(gulp.dest("vendor/"));

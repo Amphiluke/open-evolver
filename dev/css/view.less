@@ -1,29 +1,11 @@
 @import (reference) "ui";
 
-.oe-acknowledgements {
-    color:#dadada;
-    font:unit((12px / @root-font-size), em) @base-font-family;
-    margin:3px 0 0 3px;
-    position:absolute;
-    z-index:1;
-    &:before {
-        background:#000 url(data:image/gif;base64,R0lGODlhBgAGAIABAP///zMzMyH5BAEAAAEALAAAAAAGAAYAAAIKRB5mibDnGmStAAA7) 50% 50% no-repeat;
-        border:1px solid;
-        border-radius:2px;
-        content:"";
-        cursor:pointer;
-        display:inline-block;
-        height:10px;
-        margin:0 4px 0 0;
-        vertical-align:middle;
-        width:10px;
-    }
-}
 #oe-view {
-    float:left;
     font-size:0;
+    height:~"calc(100vh - @{root-line-height} - 3px * 2 - 1px)"; // 100% - top menu height
     line-height:0;
     margin-right:10px;
+    width:100%;
     &.oe-droppable {
         outline:1px dashed #000;
         position:relative;
@@ -49,7 +31,7 @@
         user-select:none;
     }
     canvas {
-        height:500px;
-        width:600px;
+        height:100% !important;
+        width:100% !important;
     }
 }

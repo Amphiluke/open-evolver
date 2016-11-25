@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "babel-plugin-transform-es2015-modules-amd": "^6.18.0",
+    "eslint": "^3.10.2",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "gulp-files-to-json": "^0.2.1",

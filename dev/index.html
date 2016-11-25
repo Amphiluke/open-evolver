@@ -4,7 +4,7 @@
     <meta charset="UTF-8"/>
     <title>Open evolver</title>
     <link rel="icon" type="image/png" href="../favicon.png"/>
-    <link rel="stylesheet" href="src/css/main.css"/>
+    <link rel="stylesheet" href="css/main.css"/>
 </head>
 <body>
 
@@ -18,7 +18,7 @@
             <hr/>
             <menuitem label="Save summary…" data-action="saveSummary"></menuitem>
         </menu>
-        <input type="file" id="oe-file" autocomplete="off"/>
+        <input type="file" id="oe-file" autocomplete="off" accept=".hin,.ml2,.mol2,.xyz"/>
     </li>
     <li>
         <button type="menu" value="Edit" menu="edit-menu"></button>
@@ -224,29 +224,29 @@
     </p>
 </div>
 
-<p class="oe-acknowledgements">Powered by <a href="http://threejs.org/" rel="nofollow" target="_blank">three.js</a></p>
-<div id="oe-view"></div>
+<div id="oe-view"><canvas></canvas></div>
 
 <div class="oe-report hidden">
     <p><progress id="oe-report-progress" value="0" max="100"></progress></p>
     <dl id="oe-report-data"></dl>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r72/three.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
-<script src="src/js/fallback.js"></script>
-<!-- build:js src/js/main.js -->
-<script src="src/js/core-polyfills.js"></script>
-<script src="src/js/observer.js"></script>
-<script src="src/js/utils.js"></script>
-<script src="src/js/app.js"></script>
-<script src="src/js/worker.js"></script>
-<script src="src/js/structure.js"></script>
-<script src="src/js/file-processing.js"></script>
-<script src="src/js/view.js"></script>
-<script src="src/js/interface.js"></script>
-<script src="src/js/download-shim-ie.js"></script>
-<!-- endbuild -->
+<script src="../vendor/system.js"></script>
+<script>
+    System.config({
+        baseURL: "./js",
+        map: {
+            jquery: "../vendor/jquery.min.js",
+            _: "../vendor/lodash.min.js",
+            three: "../vendor/three.min.js"
+        },
+        meta: {
+            jquery: {format: "cjs"},
+            _: {format: "cjs"},
+            three: {format: "cjs"}
+        }
+    });
+    System.import("interface.amd.js");
+</script>
 </body>
 </html>

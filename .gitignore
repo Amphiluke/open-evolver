@@ -2,6 +2,9 @@
 logs
 *.log
 
+# IDE files
+.idea
+
 # Runtime data
 pids
 *.pid
@@ -27,3 +30,9 @@ node_modules
 # Storage
 store/*
 !store/README.md
+
+# Generated files
+dev/js/**/*.amd.js
+dev/css/**/*.css
+vendor/*
+!vendor/README.md

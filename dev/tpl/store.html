@@ -1,0 +1,6 @@
+<% for (let [index, {path, name, description}] of data.records.entries()) { %>
+    <li data-path="<%- path %>"<% if (index === 0) { %> class="active"<% } %>>
+        <h3><%- name %></h3>
+        <p><%- description %></p>
+    </li>
+<% } %>

@@ -1,0 +1,74 @@
+@import (reference) "../utils";
+@import (reference) "../ui";
+
+.oe-graph-form {
+    border-color:@border-light-color;
+    border-radius:0 0 0 5px;
+    border-width:0 0 1px 1px;
+    left:auto;
+    margin-left:0;
+    right:0;
+    top:@root-line-height + 3px * 2 + 1px; // top menu height
+    width:350px;
+    z-index:1;
+    &:before {
+        content:none;
+    }
+}
+
+.oe-cutoffs {
+    border:1px solid @border-light-color;
+    padding:0;
+}
+.oe-cutoff {
+    background:none;
+    border:none;
+    border-top:1px solid @border-light-color;
+    .box-sizing(border-box);
+    display:block;
+    padding:0;
+    text-align:left;
+    width:100%;
+    &:first-child {
+        border-top:none;
+    }
+    &:focus,
+    &.active {
+        background:lighten(@panel-light-color, 2%);
+        outline:none;
+    }
+    &:before {
+        background:@panel-light-color;
+        border-right:1px solid @border-light-color;
+        content:attr(data-pair);
+        display:inline-block;
+        margin-right:5px;
+        min-width:75px;
+        padding-left:5px;
+    }
+}
+
+.oe-cutoff-slider {
+    padding:0;
+    width:100%;
+}
+.oe-cutoff-min,
+.oe-cutoff-max,
+.oe-cutoff-exact {
+    display:block;
+    width:32%;
+    input {
+        .box-sizing(border-box);
+        width:100%;
+    }
+}
+.oe-cutoff-min {
+    float:left;
+}
+.oe-cutoff-max {
+    float:right;
+}
+.oe-cutoff-exact {
+    margin-left:auto;
+    margin-right:auto;
+}

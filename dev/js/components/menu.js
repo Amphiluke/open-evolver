@@ -104,7 +104,7 @@ app.addAction("load", {
     },
     exec(file) {
         if (file) {
-            fileAPI.load(file);
+            fileAPI.load(file).then(() => app.trigger("app:structure:loaded"));
         }
     }
 });

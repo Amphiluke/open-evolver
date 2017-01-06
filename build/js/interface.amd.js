@@ -890,7 +890,7 @@ define("file-processing.amd.js", ["exports", "./utils.amd.js", "./structure.amd.
       }
     },
     parse(fileStr) {
-      let molRE = /\n\s*mol\s+(\d+)([\s\S]+)\n\s*endmol\s+\1/g,
+      let molRE = /\n\s*mol\s+(\d+)([\s\S]+)\n\s*endmol\s+\1\b/g,
           atmRE = /^atom\s+\d+\s+.+$/gm,
           result = {
             atoms: [],
@@ -1186,7 +1186,7 @@ define("components/menu.amd.js", ["exports", "jquery", "../eventful.amd.js", "..
     },
     exec(file) {
       if (file) {
-        _fileProcessingAmd2.default.load(file);
+        _fileProcessingAmd2.default.load(file).then(() => _appAmd2.default.trigger("app:structure:loaded"));
       }
     }
   });
@@ -1429,34 +1429,34 @@ define("worker.amd.js", ["exports", "./observer.amd.js", "./app.amd.js"], functi
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {default: obj};
   }
-  let calcWorker = new Worker("js/calc.js");
+  let worker = new Worker("js/calc.js");
   let blockingMethod = "ready";
   _appAmd2.default.busy = true;
-  let worker = Object.assign(new _observerAmd2.default(), {invoke(method, data) {
+  let workerHelper = Object.assign(new _observerAmd2.default(), {invoke(method, data) {
       if (blockingMethod) {
         throw new Error(`Unable to run the method “${method}” as the blocking method “${blockingMethod}” is still running`);
       }
       blockingMethod = method;
       _appAmd2.default.busy = true;
-      calcWorker.postMessage({
+      worker.postMessage({
         method,
         data
       });
     }});
-  calcWorker.addEventListener("message", ({data: {method,
+  worker.addEventListener("message", ({data: {method,
       data} = {}}) => {
     if (method) {
       if (method === blockingMethod) {
         _appAmd2.default.busy = false;
         blockingMethod = null;
       }
-      worker.trigger(method, data);
+      workerHelper.trigger(method, data);
     }
   });
-  calcWorker.addEventListener("error", (e) => {
+  worker.addEventListener("error", (e) => {
     throw e;
   });
-  exports.default = worker;
+  exports.default = workerHelper;
 });
 
 })();
@@ -1517,7 +1517,6 @@ define("structure.amd.js", ["exports", "./observer.amd.js", "./app.amd.js", "./u
       }
       this.trigger("updateStructure", rescanAtoms !== false);
       if (fromWorker !== true) {
-        _appAmd2.default.trigger("app:structure:loaded");
         syncWorker();
       }
     },
@@ -1948,7 +1947,7 @@ define("interface.amd.js", ["./structure.amd.js", "./app.amd.js", "./components/
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {default: obj};
   }
-  _structureAmd2.default.on("app:structure:loaded", () => {
+  _appAmd2.default.on("app:structure:loaded", () => {
     document.title = `${_structureAmd2.default.structure.name} - Open evolver`;
   });
   _appAmd2.default.on("app:stateChange", (busy) => {

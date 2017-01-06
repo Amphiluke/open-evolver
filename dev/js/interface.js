@@ -15,7 +15,7 @@ import "./components/menu.js";
 import "./components/view.js";
 
 
-structure.on("app:structure:loaded", () => {
+app.on("app:structure:loaded", () => {
     document.title = `${structure.structure.name} - Open evolver`;
 });
 

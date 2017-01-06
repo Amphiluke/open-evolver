@@ -109,7 +109,6 @@ let structureUtils = Object.assign(new Observer(), {
         }
         this.trigger("updateStructure", rescanAtoms !== false);
         if (fromWorker !== true) {
-            app.trigger("app:structure:loaded");
             syncWorker();
         }
     },

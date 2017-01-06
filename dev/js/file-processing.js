@@ -27,7 +27,7 @@ formats.hin = {
     },
 
     parse(fileStr) {
-        let molRE = /\n\s*mol\s+(\d+)([\s\S]+)\n\s*endmol\s+\1/g,
+        let molRE = /\n\s*mol\s+(\d+)([\s\S]+)\n\s*endmol\s+\1\b/g,
             atmRE = /^atom\s+\d+\s+.+$/gm,
             result = {atoms: [], bonds: []},
             mol = molRE.exec(fileStr);

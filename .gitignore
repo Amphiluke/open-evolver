@@ -27,3 +27,6 @@ node_modules
 # Storage
 store/*
 !store/README.md
+
+# IDE
+.idea
